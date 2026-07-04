@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海光信息 (688041.SH) 数据分析报告</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #f5f7fa; color: #2c3e50; line-height: 1.7; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  
+  /* Header */
+  .report-header { background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%); color: white; padding: 40px 30px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(26,35,126,0.15); }
+  .report-header h1 { font-size: 28px; margin-bottom: 8px; }
+  .report-header .subtitle { font-size: 15px; opacity: 0.85; }
+  .report-header .meta { display: flex; gap: 30px; margin-top: 16px; font-size: 13px; opacity: 0.9; }
+  .report-header .meta span { display: flex; align-items: center; gap: 6px; }
+  
+  /* Section */
+  .section { background: white; border-radius: 10px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .section-title { font-size: 18px; font-weight: 700; color: #1a237e; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #e8eaf6; display: flex; align-items: center; gap: 8px; }
+  .section-title .icon { width: 4px; height: 20px; background: linear-gradient(180deg, #3949ab, #1a237e); border-radius: 2px; }
+  
+  /* Cards */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .stat-card { background: white; border-radius: 10px; padding: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-top: 3px solid #3949ab; transition: transform 0.2s; }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .stat-card .label { font-size: 12px; color: #7f8c8d; margin-bottom: 6px; }
+  .stat-card .value { font-size: 22px; font-weight: 700; color: #1a237e; }
+  .stat-card .sub { font-size: 11px; color: #95a5a6; margin-top: 4px; }
+  .stat-card.up { border-top-color: #e74c3c; }
+  .stat-card.up .value { color: #e74c3c; }
+  .stat-card.down { border-top-color: #27ae60; }
+  .stat-card.down .value { color: #27ae60; }
+  
+  /* Chart */
+  .chart-box { width: 100%; height: 400px; margin-top: 8px; }
+  .chart-box.tall { height: 480px; }
+  .chart-box.short { height: 320px; }
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  
+  /* Table */
+  .table-wrap { overflow-x: auto; margin-top: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { background: #f5f7fa; color: #1a237e; padding: 10px 8px; text-align: center; font-weight: 600; border-bottom: 2px solid #e8eaf6; white-space: nowrap; }
+  tbody td { padding: 8px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+  tbody tr:hover { background: #fafbfc; }
+  tbody tr:nth-child(even) { background: #fcfcfd; }
+  
+  /* Analysis text */
+  .analysis { font-size: 14px; color: #34495e; line-height: 1.9; }
+  .analysis .highlight { color: #e74c3c; font-weight: 700; }
+  .analysis .highlight-g { color: #27ae60; font-weight: 700; }
+  .analysis .highlight-b { color: #1a237e; font-weight: 700; }
+  
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge.red { background: #fdecea; color: #e74c3c; }
+  .badge.green { background: #e8f5e9; color: #27ae60; }
+  .badge.blue { background: #e8eaf6; color: #3949ab; }
+  
+  /* Insight box */
+  .insight { background: linear-gradient(135deg, #f5f7fa, #e8eaf6); border-left: 4px solid #3949ab; padding: 16px 20px; border-radius: 6px; margin-top: 12px; font-size: 14px; }
+  .insight strong { color: #1a237e; }
+  
+  .footer { text-align: center; color: #95a5a6; font-size: 12px; padding: 20px; }
+  
+  @media (max-width: 768px) {
+    .chart-row { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Header -->
+<div class="report-header">
+  <h1>海光信息 (688041.SH) 数据分析报告</h1>
+  <div class="subtitle">过去一年交易日多维数据分析 · 涵盖价格走势、成交量、波动率、月度表现、技术指标</div>
+  <div class="meta">
+    <span>📅 数据区间：2025-07-04 ~ 2026-07-03</span>
+    <span>📊 交易日数：242 天</span>
+    <span>💰 数据来源：Tushare</span>
+    <span>🕐 报告生成：2026-07-04</span>
+  </div>
+</div>
+
+<!-- 1. 核心摘要 -->
+<div class="section">
+  <div class="section-title"><span class="icon"></span>一、核心摘要</div>
+  <div class="stat-grid">
+    <div class="stat-card up">
+      <div class="label">最新收盘价</div>
+      <div class="value">¥325.40</div>
+      <div class="sub">起始价 ¥135.56</div>
+    </div>
+    <div class="stat-card up">
+      <div class="label">一年涨跌幅</div>
+      <div class="value">+140.0%</div>
+      <div class="sub">绝对涨幅 ¥189.84</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">区间最高价</div>
+      <div class="value">¥377.88</div>
+      <div class="sub">2026-07-01</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">区间最低价</div>
+      <div class="value">¥134.83</div>
+      <div class="sub">2025-07-07</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">平均收盘价</div>
+      <div class="value">¥234.11</div>
+      <div class="sub">中位数 ¥234.71</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">年化波动率</div>
+      <div class="value">66.8%</div>
+      <div class="sub">日波动率 σ=4.21%</div>
+    </div>
+    <div class="stat-card up">
+      <div class="label">上涨天数</div>
+      <div class="value">116</div>
+      <div class="sub">占比 47.9%</div>
+    </div>
+    <div class="stat-card down">
+      <div class="label">下跌天数</div>
+      <div class="value">126</div>
+      <div class="sub">占比 52.1%</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">日均成交量</div>
+      <div class="value">3239万股</div>
+      <div class="sub">日均成交额 78.88亿</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">总成交额</div>
+      <div class="value">1.91万亿</div>
+      <div class="sub">总成交量 78.39亿股</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">最大单日涨幅</div>
+      <div class="value" style="color:#e74c3c">+20.00%</div>
+      <div class="sub">2025-09-11</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">最大单日跌幅</div>
+      <div class="value" style="color:#27ae60">-11.13%</div>
+      <div class="sub">2025-09-04</div>
+    </div>
+  </div>
+  
+  <div class="insight">
+    <strong>核心发现：</strong>
+    海光信息过去一年股价从 <strong>¥135.56</strong> 上涨至 <strong>¥325.40</strong>，累计涨幅 <span class="highlight">+140.0%</span>，
+    远超同期大盘表现。期间最高触及 <strong>¥377.88</strong>（2026-07-01），最低探至 <strong>¥134.83</strong>（2025-07-07），
+    区间振幅达 <strong>180.3%</strong>。
+    上涨天数占比 <strong>47.9%</strong>，多头占优。日均成交额 <strong>78.88亿</strong>，
+    年化波动率 <strong>66.8%</strong>，属高波动个股，符合科技股特征。
+  </div>
+</div>
+
+<!-- 2. 价格走势与均线 -->
+<div class="section">
+  <div class="section-title"><span class="icon"></span>二、价格走势与均线分析</div>
+  <div class="chart-box tall" id="chart-price"></div>
+  <div class="analysis" style="margin-top:12px">
+    <p>📌 <span class="highlight-b">均线分析：</span>
+    当前价位 ¥325.40 相对 MA5=¥344.55、MA10=¥340.93、MA20=¥314.79、MA60=¥298.40。
+    股价跌破部分短期均线，需关注支撑有效性。
+    MA5 > MA10 > MA20，呈典型多头排列。
+    布林带：上轨 ¥379.99，中轨 ¥314.79，下轨 ¥249.58，当前价格处于布林带中轨附近，运行相对合理。
+    </p>
+  </div>
+</div>
+
+<!-- 3. 累计收益率 -->
+<div class="section">
+  <div class="section-title"><span class="icon"></span>三、累计收益率走势</div>
+  <div class="chart-box" id="chart-cumret"></div>
+  <div class="analysis" style="margin-top:12px">
+    <p>📈 累计收益率从 0 起步，最终达到 <span class="highlight">+108.6%</span>。
+    走势呈现明显的<strong>阶梯式上涨</strong>特征，主要上涨阶段集中在 2025年8月、9月和 2026年1月、5月，
+    其中 8月14日-22日的一波急升（+20%涨停）和 9月11日（+20%）是关键拐点。
+    最大回撤出现在 2026年2月中旬至3月下旬的调整段，但并未改变整体上升趋势。</p>
+  </div>
+</div>
+
+<!-- 4. 月度表现 -->
+<div class="section">
+  <div class="section-title"><span class="icon"></span>四、月度表现分析</div>
+  <div class="chart-box" id="chart-monthly"></div>
+  <div class="table-wrap" style="margin-top:16px">
+    <table>
+      <thead>
+        <tr>
+          <th>月份</th><th>月开盘</th><th>月收盘</th><th>月最高</th><th>月最低</th>
+          <th>月涨跌幅</th><th>涨天数</th><th>跌天数</th><th>交易日</th><th>月成交量</th><th>月成交额</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>2025-07</td>
+          <td>¥135.36</td>
+          <td>¥139.20</td>
+          <td>¥145.00</td>
+          <td>¥134.83</td>
+          <td style="color:#e74c3c;font-weight:700">+2.84%</td>
+          <td>10</td>
+          <td>10</td>
+          <td>20</td>
+          <td>3.43亿股</td>
+          <td>474.25亿</td>
+        </tr>
+        <tr>
+          <td>2025-08</td>
+          <td>¥139.70</td>
+          <td>¥194.52</td>
+          <td>¥217.66</td>
+          <td>¥135.05</td>
+          <td style="color:#e74c3c;font-weight:700">+39.74%</td>
+          <td>9</td>
+          <td>12</td>
+          <td>21</td>
+          <td>9.68亿股</td>
+          <td>1626.60亿</td>
+        </tr>
+        <tr>
+          <td>2025-09</td>
+          <td>¥199.00</td>
+          <td>¥252.60</td>
+          <td>¥277.98</td>
+          <td>¥169.33</td>
+          <td style="color:#e74c3c;font-weight:700">+29.86%</td>
+          <td>10</td>
+          <td>12</td>
+          <td>22</td>
+          <td>11.89亿股</td>
+          <td>2692.11亿</td>
+        </tr>
+        <tr>
+          <td>2025-10</td>
+          <td>¥262.00</td>
+          <td>¥229.33</td>
+          <td>¥273.33</td>
+          <td>¥223.00</td>
+          <td style="color:#27ae60;font-weight:700">-9.21%</td>
+          <td>9</td>
+          <td>8</td>
+          <td>17</td>
+          <td>5.78亿股</td>
+          <td>1397.34亿</td>
+        </tr>
+        <tr>
+          <td>2025-11</td>
+          <td>¥225.99</td>
+          <td>¥217.30</td>
+          <td>¥246.38</td>
+          <td>¥203.27</td>
+          <td style="color:#27ae60;font-weight:700">-5.25%</td>
+          <td>9</td>
+          <td>11</td>
+          <td>20</td>
+          <td>4.22亿股</td>
+          <td>930.28亿</td>
+        </tr>
+        <tr>
+          <td>2025-12</td>
+          <td>¥219.90</td>
+          <td>¥224.41</td>
+          <td>¥231.20</td>
+          <td>¥196.21</td>
+          <td style="color:#e74c3c;font-weight:700">+3.27%</td>
+          <td>10</td>
+          <td>13</td>
+          <td>23</td>
+          <td>4.86亿股</td>
+          <td>1041.23亿</td>
+        </tr>
+        <tr>
+          <td>2026-01</td>
+          <td>¥227.50</td>
+          <td>¥264.44</td>
+          <td>¥308.56</td>
+          <td>¥219.35</td>
+          <td style="color:#e74c3c;font-weight:700">+17.84%</td>
+          <td>8</td>
+          <td>12</td>
+          <td>20</td>
+          <td>6.83亿股</td>
+          <td>1767.97亿</td>
+        </tr>
+        <tr>
+          <td>2026-02</td>
+          <td>¥260.00</td>
+          <td>¥261.10</td>
+          <td>¥269.88</td>
+          <td>¥232.58</td>
+          <td style="color:#27ae60;font-weight:700">-1.26%</td>
+          <td>6</td>
+          <td>8</td>
+          <td>14</td>
+          <td>3.00亿股</td>
+          <td>758.13亿</td>
+        </tr>
+        <tr>
+          <td>2026-03</td>
+          <td>¥255.08</td>
+          <td>¥210.26</td>
+          <td>¥265.00</td>
+          <td>¥202.98</td>
+          <td style="color:#27ae60;font-weight:700">-19.47%</td>
+          <td>7</td>
+          <td>15</td>
+          <td>22</td>
+          <td>4.31亿股</td>
+          <td>997.60亿</td>
+        </tr>
+        <tr>
+          <td>2026-04</td>
+          <td>¥217.10</td>
+          <td>¥296.25</td>
+          <td>¥305.00</td>
+          <td>¥211.00</td>
+          <td style="color:#e74c3c;font-weight:700">+40.90%</td>
+          <td>16</td>
+          <td>5</td>
+          <td>21</td>
+          <td>6.33亿股</td>
+          <td>1648.54亿</td>
+        </tr>
+        <tr>
+          <td>2026-05</td>
+          <td>¥322.10</td>
+          <td>¥293.90</td>
+          <td>¥358.80</td>
+          <td>¥290.89</td>
+          <td style="color:#27ae60;font-weight:700">-0.79%</td>
+          <td>9</td>
+          <td>9</td>
+          <td>18</td>
+          <td>8.39亿股</td>
+          <td>2727.87亿</td>
+        </tr>
+        <tr>
+          <td>2026-06</td>
+          <td>¥299.77</td>
+          <td>¥370.30</td>
+          <td>¥377.79</td>
+          <td>¥255.84</td>
+          <td style="color:#e74c3c;font-weight:700">+26.00%</td>
+          <td>12</td>
+          <td>9</td>
+          <td>21</td>
+          <td>8.56亿股</td>
+          <td>2650.92亿</td>
+        </tr>
+        <tr>
+          <td>2026-07</td>
+          <td>¥368.00</td>
+          <td>¥325.40</td>
+          <td>¥377.88</td>
+          <td>¥317.03</td>
+          <td style="color:#27ae60;font-weight:700">-12.13%</td>
+          <td>1</td>
+          <td>2</td>
+          <td>3</td>
+          <td>1.10亿股</td>
+          <td>375.95亿</td>
+        </tr></tbody>
+    </table>
+  </div>
+  <div class="insight">
+    <strong>月度亮点：</strong>
+    最佳月份为 2026-04（+40.90%），
+    最差月份为 2026-03（-19.47%）。
+    12个月中 7 个月收涨、6 个月收跌，胜率 54%。
+  </div>
+</div>
+
+<!-- 5. 日涨跌幅分布 -->
+<div class="section">
+  <div class="section-title"><span class="icon"></span>五、日涨跌幅分布</div>
+  <div class="chart-row">
+    <div class="chart-box" id="chart-dist"></div>
+    <div class="chart-box" id="chart-pct-bar"></div>
+  </div>
+  <div class="analysis" style="margin-top:12px">
+    <p>📊 <span class="highlight-b">分布特征：</span>
+    日均涨跌幅 <strong>+0.449%</strong>，标准差 <strong>4.206%</strong>。
+    上涨日平均涨幅 <span class="highlight">+3.56%</span>，下跌日平均跌幅 <span class="highlight-g">-2.41%</span>，
+    上涨力度大于下跌力度，多头主导。
+    最大连续上涨 <strong>7</strong> 天，最大连续下跌 <strong>6</strong> 天。
+    日均振幅 <strong>5.14%</strong>，单日波动较大。</p>
+    
+    <p>🔍 <span class="highlight-b">涨跌区间：</span>
+    涨幅超 5% 的天数 29 天（12.0%），
+    跌幅超 5% 的天数 15 天（6.2%），
+    大幅波动日（|涨跌幅|>5%）共 44 天，占比 18.2%。</p>
+  </div>
+</div>
+
+<!-- 6. 成交量分析 -->
+<div class="section">
+  <div class="section-title"><span class="icon"></span>六、成交量分析</div>
+  <div class="chart-box" id="chart-volume"></div>
+  <div class="chart-row" style="margin-top:16px">
+    <div class="chart-box short" id="chart-vol-scatter"></div>
+    <div class="chart-box short" id="chart-vol-dual"></div>
+  </div>
+  <div class="analysis" style="margin-top:12px">
+    <p>📦 <span class="highlight-b">成交量特征：</span>
+    日均成交量 <strong>3239万股</strong>，最高量 <strong>1.02亿股</strong>（2025-08-25），
+    最低量 <strong>723万股</strong>（2025-07-07）。
+    成交量四分位：Q25=1968万股，Q50=2837万股，Q75=4229万股。</p>
+    
+    <p>🔗 <span class="highlight-b">量价关系：</span>
+    成交量与涨跌幅的 Pearson 相关系数为 <strong>0.3875</strong>，
+    呈正相关，放量上涨为主，资金积极做多。
+    高成交量日（>Q75）中上涨 38 天、下跌 22 天，
+    高量日以涨为主，多头资金活跃。
+    低成交量日（<Q25）中上涨 21 天、下跌 39 天，
+    低量日跌多涨少，市场偏弱。</p>
+  </div>
+</div>
+
+<!-- 7. 波动率分析 -->
+<div class="section">
+  <div class="section-title"><span class="icon"></span>七、波动率分析</div>
+  <div class="chart-box" id="chart-volatility"></div>
+  <div class="chart-row" style="margin-top:16px">
+    <div class="chart-box short" id="chart-range20"></div>
+    <div class="chart-box short" id="chart-weekly-ret"></div>
+  </div>
+  <div class="analysis" style="margin-top:12px">
+    <p>⚡ <span class="highlight-b">波动率特征：</span>
+    年化波动率 <strong>66.8%</strong>，属高波动水平（通常 >30% 为高波动）。
+    20日滚动年化波动率图中可看到，波动率在股价急涨急跌期显著飙升，
+    平稳期回落至 30%-50% 区间。这反映了该股事件驱动型特征明显，
+    业绩公告、行业政策等事件往往引发短期剧烈波动。</p>
+    
+    <p>📐 <span class="highlight-b">20日价格区间：</span>反映滚动20日内高低价差占均价比例，
+    数值越高代表近期波动幅度越大。当前20日区间约 <strong>35.13%</strong>。</p>
+    
+    <p>📋 <span class="highlight-b">周收益率分布：</span>
+    共 52 周，周均收益 <strong>+1.15%</strong>，
+    最佳周 <strong>+22.24%</strong>，最差周 <strong>-11.01%</strong>，
+    周胜率 <strong>50%</strong>。</p>
+  </div>
+</div>
+
+<!-- 8. Top 10 涨跌 -->
+<div class="section">
+  <div class="section-title"><span class="icon"></span>八、十大涨幅 & 跌幅交易日</div>
+  <div class="chart-row">
+    <div>
+      <h3 style="color:#e74c3c;font-size:15px;margin-bottom:10px">🔴 十大涨幅日</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>日期</th><th>开盘</th><th>收盘</th><th>最高</th><th>最低</th><th>涨幅</th><th>成交量</th><th>成交额</th></tr></thead>
+          <tbody>
+        <tr>
+          <td>1</td>
+          <td>2025-09-11</td>
+          <td>¥185.14</td>
+          <td>¥220.84</td>
+          <td>¥220.84</td>
+          <td>¥184.80</td>
+          <td style="color:#e74c3c;font-weight:700">+20.00%</td>
+          <td>7758万股</td>
+          <td>159.97亿</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>2025-08-22</td>
+          <td>¥159.18</td>
+          <td>¥186.06</td>
+          <td>¥186.06</td>
+          <td>¥159.18</td>
+          <td style="color:#e74c3c;font-weight:700">+20.00%</td>
+          <td>7515万股</td>
+          <td>133.10亿</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>2026-05-06</td>
+          <td>¥322.10</td>
+          <td>¥344.41</td>
+          <td>¥355.50</td>
+          <td>¥321.00</td>
+          <td style="color:#e74c3c;font-weight:700">+16.26%</td>
+          <td>6161万股</td>
+          <td>212.40亿</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>2026-01-21</td>
+          <td>¥263.49</td>
+          <td>¥288.11</td>
+          <td>¥298.00</td>
+          <td>¥263.49</td>
+          <td style="color:#e74c3c;font-weight:700">+13.34%</td>
+          <td>6237万股</td>
+          <td>177.46亿</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>2025-08-25</td>
+          <td>¥196.00</td>
+          <td>¥210.10</td>
+          <td>¥217.66</td>
+          <td>¥195.36</td>
+          <td style="color:#e74c3c;font-weight:700">+12.92%</td>
+          <td>1.02亿股</td>
+          <td>210.36亿</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>2025-09-22</td>
+          <td>¥232.00</td>
+          <td>¥261.21</td>
+          <td>¥274.78</td>
+          <td>¥230.00</td>
+          <td style="color:#e74c3c;font-weight:700">+10.70%</td>
+          <td>7188万股</td>
+          <td>181.79亿</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>2025-08-14</td>
+          <td>¥140.90</td>
+          <td>¥152.49</td>
+          <td>¥159.99</td>
+          <td>¥140.56</td>
+          <td style="color:#e74c3c;font-weight:700">+8.83%</td>
+          <td>7890万股</td>
+          <td>120.20亿</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>2026-01-08</td>
+          <td>¥226.00</td>
+          <td>¥241.68</td>
+          <td>¥252.00</td>
+          <td>¥226.00</td>
+          <td style="color:#e74c3c;font-weight:700">+8.50%</td>
+          <td>5191万股</td>
+          <td>126.59亿</td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td>2026-04-24</td>
+          <td>¥275.63</td>
+          <td>¥285.00</td>
+          <td>¥293.30</td>
+          <td>¥271.06</td>
+          <td style="color:#e74c3c;font-weight:700">+8.20%</td>
+          <td>5413万股</td>
+          <td>152.61亿</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td>2026-05-11</td>
+          <td>¥340.50</td>
+          <td>¥349.18</td>
+          <td>¥350.00</td>
+          <td>¥332.97</td>
+          <td style="color:#e74c3c;font-weight:700">+8.01%</td>
+          <td>5450万股</td>
+          <td>186.42亿</td>
+        </tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h3 style="color:#27ae60;font-size:15px;margin-bottom:10px">🟢 十大跌幅日</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>日期</th><th>开盘</th><th>收盘</th><th>最高</th><th>最低</th><th>跌幅</th><th>成交量</th><th>成交额</th></tr></thead>
+          <tbody>
+        <tr>
+          <td>1</td>
+          <td>2025-09-04</td>
+          <td>¥195.50</td>
+          <td>¥173.28</td>
+          <td>¥195.60</td>
+          <td>¥170.41</td>
+          <td style="color:#27ae60;font-weight:700">-11.13%</td>
+          <td>6709万股</td>
+          <td>120.44亿</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>2025-10-10</td>
+          <td>¥257.00</td>
+          <td>¥241.49</td>
+          <td>¥257.00</td>
+          <td>¥238.58</td>
+          <td style="color:#27ae60;font-weight:700">-8.20%</td>
+          <td>4798万股</td>
+          <td>117.97亿</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>2026-07-02</td>
+          <td>¥336.60</td>
+          <td>¥322.29</td>
+          <td>¥348.60</td>
+          <td>¥320.76</td>
+          <td style="color:#27ae60;font-weight:700">-7.89%</td>
+          <td>3980万股</td>
+          <td>132.86亿</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>2026-05-27</td>
+          <td>¥343.00</td>
+          <td>¥316.79</td>
+          <td>¥343.00</td>
+          <td>¥316.66</td>
+          <td style="color:#27ae60;font-weight:700">-7.14%</td>
+          <td>4657万股</td>
+          <td>152.70亿</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>2026-03-03</td>
+          <td>¥257.79</td>
+          <td>¥241.00</td>
+          <td>¥258.00</td>
+          <td>¥240.00</td>
+          <td style="color:#27ae60;font-weight:700">-6.93%</td>
+          <td>3197万股</td>
+          <td>78.58亿</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>2026-05-15</td>
+          <td>¥320.00</td>
+          <td>¥303.01</td>
+          <td>¥325.00</td>
+          <td>¥300.18</td>
+          <td style="color:#27ae60;font-weight:700">-6.82%</td>
+          <td>5767万股</td>
+          <td>178.21亿</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>2025-10-14</td>
+          <td>¥248.80</td>
+          <td>¥227.60</td>
+          <td>¥248.98</td>
+          <td>¥224.38</td>
+          <td style="color:#27ae60;font-weight:700">-6.72%</td>
+          <td>4619万股</td>
+          <td>108.23亿</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>2026-05-14</td>
+          <td>¥348.38</td>
+          <td>¥325.20</td>
+          <td>¥353.68</td>
+          <td>¥325.00</td>
+          <td style="color:#27ae60;font-weight:700">-6.60%</td>
+          <td>4229万股</td>
+          <td>141.36亿</td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td>2026-05-29</td>
+          <td>¥319.80</td>
+          <td>¥293.90</td>
+          <td>¥322.56</td>
+          <td>¥290.89</td>
+          <td style="color:#27ae60;font-weight:700">-6.51%</td>
+          <td>4269万股</td>
+          <td>129.28亿</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td>2026-06-01</td>
+          <td>¥299.77</td>
+          <td>¥275.36</td>
+          <td>¥300.19</td>
+          <td>¥275.00</td>
+          <td style="color:#27ae60;font-weight:700">-6.31%</td>
+          <td>4012万股</td>
+          <td>115.31亿</td>
+        </tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="insight">
+    <strong>事件解读：</strong>
+    最大涨幅日 2025-09-11 涨幅 +20.00%（收盘 ¥220.84），
+    成交量 7758万股，成交额 159.97亿。
+    最大跌幅日 2025-09-04 跌幅 -11.13%（收盘 ¥173.28），
+    成交量 6709万股。
+    涨幅 Top10 中有 2 天触及 20% 涨停板，多为重大利好或情绪高潮日。
+  </div>
+</div>
+
+<!-- 9. 技术指标摘要 -->
+<div class="section">
+  <div class="section-title"><span class="icon"></span>九、技术指标摘要</div>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="label">MA5</div>
+      <div class="value">¥344.55</div>
+      <div class="sub">▼ 空头</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">MA10</div>
+      <div class="value">¥340.93</div>
+      <div class="sub">▼ 空头</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">MA20</div>
+      <div class="value">¥314.79</div>
+      <div class="sub">▲ 多头</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">MA60</div>
+      <div class="value">¥298.40</div>
+      <div class="sub">▲ 多头</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">RSI(14)</div>
+      <div class="value">61.1</div>
+      <div class="sub">中性区间</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">布林上轨</div>
+      <div class="value">¥379.99</div>
+      <div class="sub">2σ 上轨</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">布林中轨</div>
+      <div class="value">¥314.79</div>
+      <div class="sub">MA20</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">布林下轨</div>
+      <div class="value">¥249.58</div>
+      <div class="sub">2σ 下轨</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">最大连涨</div>
+      <div class="value">7 天</div>
+      <div class="sub">连续上涨</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">最大连跌</div>
+      <div class="value">6 天</div>
+      <div class="sub">连续下跌</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">日均振幅</div>
+      <div class="value">5.14%</div>
+      <div class="sub">(最高-最低)/前收</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">量价相关系数</div>
+      <div class="value">0.3875</div>
+      <div class="sub">Pearson r</div>
+    </div>
+  </div>
+  <div class="insight">
+    <strong>技术面综合：</strong>
+    均线存在分歧，技术面中性偏弱，建议关注 MA20 支撑。
+    布林带宽度（上轨-下轨）= ¥130.41，带宽较大，波动空间充足。
+  </div>
+</div>
+
+<!-- 10. 综合结论 -->
+<div class="section">
+  <div class="section-title"><span class="icon"></span>十、综合结论与风险提示</div>
+  <div class="analysis">
+    <h3 style="color:#1a237e;margin-bottom:10px">📋 投资特征总结</h3>
+    <p>1. <span class="highlight-b">趋势表现：</span>过去一年股价累计上涨 <span class="highlight">+140.0%</span>，远超市场平均水平，表现出强劲的上升趋势。价格从 ¥135.56 升至 ¥325.40，区间最高 ¥377.88，振幅 180%。</p>
+    
+    <p>2. <span class="highlight-b">波动特征：</span>年化波动率 66.8%，日均振幅 5.14%，属高波动个股。多次出现 ±20% 的涨停/跌停级别波动，说明该股受事件驱动影响显著，适合风险承受能力较强的投资者。</p>
+    
+    <p>3. <span class="highlight-b">量价关系：</span>成交量与涨跌幅相关系数 0.3875，放量上涨特征明显，资金推动型行情。 日均成交额 78.88亿，流动性充沛。</p>
+    
+    <p>4. <span class="highlight-b">月度节奏：</span>7/13 个月收涨，月胜率 54%。上涨主要集中在财报季和行业催化期，呈现明显的波段性特征。</p>
+    
+    <p>5. <span class="highlight-b">技术面：</span>当前 RSI=61.1，处于中性区间。 均线系统存在交叉，趋势待确认。</p>
+    
+    <h3 style="color:#c0392b;margin: 16px 0 10px">⚠️ 风险提示</h3>
+    <p>• 本报告仅基于历史交易数据分析，<strong>不构成任何投资建议</strong>。</p>
+    <p>• 高波动率意味着潜在高收益伴随高风险，过往表现不代表未来走势。</p>
+    <p>• 科技股受行业政策、技术迭代、供应链变化等多因素影响，波动可能超出历史统计范围。</p>
+    <p>• 建议结合基本面（财报、行业地位）、宏观环境和自身风险偏好综合判断。</p>
+  </div>
+</div>
+
+<div class="footer">
+  <p>海光信息 (688041.SH) 数据分析报告 | 数据来源：Tushare | 报告日期：2026-07-04</p>
+  <p>本报告由自动化分析工具生成，仅供学习参考，不构成投资建议</p>
+</div>
+
+</div>
+
+<script>
+// 通用配置
+var upColor = '#e74c3c';
+var downColor = '#27ae60';
+
+// 1. 价格走势 + 均线
+var chartPrice = echarts.init(document.getElementById('chart-price'));
+chartPrice.setOption({
+  backgroundColor: 'transparent',
+  tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+  legend: { data: ['收盘价', 'MA5', 'MA10', 'MA20', 'MA60'], top: 5, textStyle: { fontSize: 12 } },
+  grid: { left: 60, right: 30, top: 50, bottom: 80 },
+  dataZoom: [
+    { type: 'inside', start: 0, end: 100 },
+    { type: 'slider', bottom: 20, height: 20 }
+  ],
+  xAxis: { type: 'category', data: ["2025-07-04", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10", "2025-07-11", "2025-07-14", "2025-07-15", "2025-07-16", "2025-07-17", "2025-07-18", "2025-07-21", "2025-07-22", "2025-07-23", "2025-07-24", "2025-07-25", "2025-07-28", "2025-07-29", "2025-07-30", "2025-07-31", "2025-08-01", "2025-08-04", "2025-08-05", "2025-08-06", "2025-08-07", "2025-08-08", "2025-08-11", "2025-08-12", "2025-08-13", "2025-08-14", "2025-08-15", "2025-08-18", "2025-08-19", "2025-08-20", "2025-08-21", "2025-08-22", "2025-08-25", "2025-08-26", "2025-08-27", "2025-08-28", "2025-08-29", "2025-09-01", "2025-09-02", "2025-09-03", "2025-09-04", "2025-09-05", "2025-09-08", "2025-09-09", "2025-09-10", "2025-09-11", "2025-09-12", "2025-09-15", "2025-09-16", "2025-09-17", "2025-09-18", "2025-09-19", "2025-09-22", "2025-09-23", "2025-09-24", "2025-09-25", "2025-09-26", "2025-09-29", "2025-09-30", "2025-10-09", "2025-10-10", "2025-10-13", "2025-10-14", "2025-10-15", "2025-10-16", "2025-10-17", "2025-10-20", "2025-10-21", "2025-10-22", "2025-10-23", "2025-10-24", "2025-10-27", "2025-10-28", "2025-10-29", "2025-10-30", "2025-10-31", "2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06", "2025-11-07", "2025-11-10", "2025-11-11", "2025-11-12", "2025-11-13", "2025-11-14", "2025-11-17", "2025-11-18", "2025-11-19", "2025-11-20", "2025-11-21", "2025-11-24", "2025-11-25", "2025-11-26", "2025-11-27", "2025-11-28", "2025-12-01", "2025-12-02", "2025-12-03", "2025-12-04", "2025-12-05", "2025-12-08", "2025-12-09", "2025-12-10", "2025-12-11", "2025-12-12", "2025-12-15", "2025-12-16", "2025-12-17", "2025-12-18", "2025-12-19", "2025-12-22", "2025-12-23", "2025-12-24", "2025-12-25", "2025-12-26", "2025-12-29", "2025-12-30", "2025-12-31", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-30", "2026-03-31", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-03"], axisLabel: { fontSize: 10 } },
+  yAxis: { type: 'value', scale: true, name: '价格(¥)', axisLabel: { formatter: '¥{value}' } },
+  series: [
+    { name: '收盘价', type: 'line', data: [135.56, 136.03, 136.9, 135.39, 135.11, 137.43, 136.1, 136.7, 137.56, 138.0, 136.97, 136.67, 135.34, 135.17, 136.7, 141.49, 139.93, 143.0, 140.45, 139.2, 137.75, 142.58, 142.46, 137.34, 136.61, 136.12, 135.91, 138.8, 140.12, 152.49, 153.86, 152.61, 148.73, 155.79, 155.05, 186.06, 210.1, 197.23, 191.95, 205.0, 194.52, 208.96, 201.89, 194.98, 173.28, 179.4, 179.35, 174.51, 184.03, 220.84, 220.02, 231.5, 246.0, 242.69, 243.81, 235.96, 261.21, 254.66, 259.89, 267.92, 259.1, 255.84, 252.6, 263.05, 241.49, 244.0, 227.6, 241.05, 233.01, 228.25, 228.74, 236.9, 241.79, 236.15, 249.01, 251.03, 245.74, 246.84, 238.2, 229.33, 226.17, 223.7, 222.0, 239.68, 232.67, 224.87, 221.4, 219.98, 222.75, 212.21, 213.53, 215.0, 213.03, 214.83, 206.3, 208.26, 206.7, 213.65, 215.95, 217.3, 216.03, 212.58, 210.14, 216.0, 214.26, 220.88, 219.3, 218.5, 212.6, 210.0, 203.0, 197.75, 207.1, 202.7, 204.08, 215.18, 219.52, 219.9, 220.45, 217.6, 219.23, 225.01, 224.41, 226.0, 225.82, 222.75, 241.68, 246.55, 246.05, 235.57, 251.5, 250.0, 244.33, 255.95, 254.21, 288.11, 288.5, 276.0, 273.0, 270.75, 268.31, 261.29, 264.44, 252.3, 251.5, 244.0, 238.17, 242.68, 250.11, 259.0, 255.0, 262.34, 259.06, 248.14, 246.48, 252.7, 261.1, 258.95, 241.0, 236.0, 242.99, 241.9, 238.43, 247.53, 244.2, 242.0, 235.74, 233.85, 227.09, 231.4, 222.63, 216.42, 207.04, 213.27, 217.4, 218.7, 220.95, 215.73, 210.26, 220.31, 213.0, 213.77, 217.54, 228.5, 227.0, 231.82, 245.25, 248.78, 252.0, 253.0, 260.0, 261.78, 252.55, 259.2, 263.4, 285.0, 296.27, 289.0, 278.77, 296.25, 344.41, 341.6, 323.28, 349.18, 349.19, 348.19, 325.2, 303.01, 303.63, 312.02, 316.74, 307.0, 312.4, 329.68, 341.16, 316.79, 314.36, 293.9, 275.36, 283.49, 285.94, 285.79, 274.06, 259.7, 268.18, 284.8, 289.84, 280.0, 299.32, 294.31, 308.22, 328.0, 327.3, 317.0, 337.1, 360.28, 344.9, 354.84, 370.3, 349.9, 322.29, 325.4], smooth: true, lineStyle: { width: 2, color: '#1a237e' }, itemStyle: { color: '#1a237e' }, symbol: 'none', areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(26,35,126,0.15)' }, { offset: 1, color: 'rgba(26,35,126,0.01)' }]) } },
+    { name: 'MA5', type: 'line', data: [null, null, null, null, 135.8, 136.17, 136.19, 136.15, 136.58, 137.16, 137.07, 137.18, 136.91, 136.43, 136.17, 137.07, 137.73, 139.26, 140.31, 140.81, 140.07, 140.6, 140.49, 139.87, 139.35, 139.02, 137.69, 136.96, 137.51, 140.69, 144.24, 147.58, 149.56, 152.7, 153.21, 159.65, 171.15, 180.85, 188.08, 198.07, 199.76, 199.53, 200.46, 201.07, 194.73, 191.7, 185.78, 180.3, 178.11, 187.63, 195.75, 206.18, 220.48, 232.21, 236.8, 239.99, 245.93, 247.67, 251.11, 255.93, 260.56, 259.48, 259.07, 259.7, 254.42, 251.4, 245.75, 243.44, 237.43, 234.78, 231.73, 233.59, 233.74, 234.37, 238.52, 242.98, 244.74, 245.75, 246.16, 242.23, 237.26, 232.85, 227.88, 228.18, 228.84, 228.58, 228.12, 227.72, 224.33, 220.24, 217.97, 216.69, 215.3, 213.72, 212.54, 211.48, 209.82, 209.95, 210.17, 212.37, 213.93, 215.1, 214.4, 214.41, 213.8, 214.77, 216.12, 217.79, 217.11, 216.26, 212.68, 208.37, 206.09, 204.11, 202.93, 205.36, 209.72, 212.28, 215.83, 218.53, 219.34, 220.44, 221.34, 222.45, 224.09, 224.8, 228.13, 232.56, 236.57, 238.52, 244.27, 245.93, 245.49, 247.47, 251.2, 258.52, 266.22, 272.55, 275.96, 279.27, 275.31, 269.87, 267.56, 263.42, 259.57, 254.71, 250.08, 245.73, 245.29, 246.79, 248.99, 253.83, 257.1, 256.71, 254.2, 253.74, 253.5, 253.47, 252.05, 249.95, 248.01, 244.17, 240.06, 241.37, 243.01, 242.81, 241.58, 240.66, 236.58, 234.02, 230.14, 226.28, 220.92, 218.15, 215.35, 214.57, 215.47, 217.21, 216.61, 217.19, 216.05, 214.61, 214.98, 218.62, 219.96, 223.73, 230.02, 236.27, 240.97, 246.17, 251.81, 255.11, 255.87, 257.31, 259.39, 264.39, 271.28, 278.57, 282.49, 289.06, 300.94, 310.01, 316.86, 330.94, 341.53, 342.29, 339.01, 334.95, 325.84, 318.41, 312.12, 308.48, 310.36, 315.57, 321.4, 321.41, 322.88, 319.18, 308.31, 296.78, 290.61, 284.9, 280.93, 277.8, 274.73, 274.51, 275.32, 276.5, 284.43, 289.65, 294.34, 301.97, 311.43, 314.97, 323.52, 333.94, 337.32, 342.82, 353.48, 356.04, 348.45, 344.55], smooth: true, lineStyle: { width: 1, color: '#e74c3c' }, symbol: 'none' },
+    { name: 'MA10', type: 'line', data: [null, null, null, null, null, null, null, null, null, 136.48, 136.62, 136.68, 136.53, 136.5, 136.66, 137.07, 137.45, 138.08, 138.37, 138.49, 138.57, 139.16, 139.87, 140.09, 140.08, 139.54, 139.14, 138.72, 138.69, 140.02, 141.63, 142.63, 143.26, 145.1, 146.95, 151.94, 159.36, 165.2, 170.39, 175.64, 179.7, 185.34, 190.66, 194.57, 196.4, 195.73, 192.66, 190.38, 189.59, 191.18, 193.73, 195.98, 200.39, 205.16, 212.22, 217.87, 226.06, 234.07, 241.66, 246.37, 250.27, 252.71, 253.37, 255.4, 255.17, 255.98, 252.62, 251.25, 248.57, 244.6, 241.56, 239.67, 238.59, 235.9, 236.65, 237.35, 239.17, 239.75, 240.26, 240.37, 240.12, 238.8, 236.82, 237.17, 235.54, 232.92, 230.49, 227.8, 226.25, 224.54, 223.28, 222.41, 221.51, 219.03, 216.39, 214.73, 213.26, 212.63, 211.95, 212.46, 212.71, 212.46, 212.17, 212.29, 213.09, 214.35, 215.61, 216.09, 215.76, 215.03, 213.73, 212.24, 211.94, 210.61, 209.59, 209.02, 209.04, 209.18, 209.97, 210.73, 212.35, 215.08, 216.81, 219.14, 221.31, 222.07, 224.28, 226.95, 229.51, 231.31, 234.53, 237.03, 239.03, 242.02, 244.86, 251.4, 256.08, 259.02, 261.72, 265.24, 266.92, 268.05, 270.06, 269.69, 269.42, 265.01, 259.98, 256.64, 254.36, 253.18, 251.85, 251.95, 251.42, 251.0, 250.5, 251.37, 253.66, 255.29, 254.38, 252.08, 250.88, 248.83, 246.77, 246.71, 246.48, 245.41, 242.87, 240.36, 238.97, 238.51, 236.48, 233.93, 230.79, 227.36, 224.68, 222.35, 220.88, 219.06, 217.38, 216.27, 215.31, 215.04, 216.09, 217.62, 218.58, 219.89, 222.32, 225.62, 229.8, 233.07, 237.77, 242.57, 246.07, 249.14, 252.78, 258.1, 263.2, 267.22, 269.9, 274.22, 282.66, 290.64, 297.72, 306.72, 315.3, 321.61, 324.51, 325.91, 328.39, 329.97, 327.2, 323.74, 322.66, 320.71, 319.9, 316.76, 315.68, 314.77, 311.94, 309.09, 306.01, 303.89, 300.05, 293.06, 285.76, 282.56, 280.11, 278.72, 281.11, 282.19, 284.42, 288.64, 293.97, 299.7, 306.59, 314.14, 319.64, 327.13, 334.23, 339.78, 341.19, 340.93], smooth: true, lineStyle: { width: 1, color: '#f39c12' }, symbol: 'none' },
+    { name: 'MA20', type: 'line', data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 137.48, 137.59, 137.92, 138.2, 138.3, 138.37, 138.31, 138.3, 138.4, 138.53, 139.25, 140.1, 140.9, 141.57, 142.6, 143.51, 145.74, 149.25, 151.96, 154.54, 157.83, 160.67, 163.99, 166.96, 169.84, 171.67, 173.84, 176.01, 177.79, 179.99, 183.41, 186.72, 190.66, 195.52, 199.87, 204.31, 206.8, 209.36, 212.23, 215.62, 218.77, 222.0, 224.34, 226.88, 230.28, 233.69, 236.92, 239.34, 242.66, 245.11, 245.48, 245.92, 246.19, 245.98, 245.65, 245.91, 246.66, 245.89, 245.5, 244.42, 242.49, 240.84, 239.23, 237.7, 236.53, 236.09, 235.14, 234.83, 233.77, 233.26, 232.46, 231.7, 230.6, 229.16, 228.1, 225.96, 223.82, 221.87, 220.21, 219.1, 218.5, 217.99, 217.44, 216.84, 215.66, 214.74, 214.54, 214.43, 214.36, 213.85, 213.74, 213.22, 212.35, 212.06, 211.45, 211.34, 211.69, 212.33, 212.64, 212.86, 212.88, 213.04, 213.66, 214.37, 214.87, 215.45, 215.54, 216.66, 218.07, 219.74, 221.02, 223.44, 226.06, 227.92, 230.58, 233.09, 236.73, 240.18, 242.99, 245.61, 248.27, 250.72, 252.54, 254.54, 255.86, 257.14, 258.2, 258.03, 257.83, 258.04, 259.21, 259.38, 260.0, 260.74, 260.35, 259.96, 258.19, 256.82, 255.97, 254.37, 252.63, 251.36, 250.39, 249.09, 248.85, 248.49, 248.39, 248.27, 247.83, 246.68, 245.29, 243.68, 241.38, 238.78, 237.04, 235.58, 233.88, 231.87, 229.71, 228.18, 227.39, 225.89, 224.49, 223.44, 222.49, 221.63, 221.12, 221.6, 222.34, 223.59, 224.67, 226.54, 228.81, 231.08, 233.38, 235.68, 238.99, 242.76, 246.42, 249.85, 253.64, 260.21, 266.61, 271.89, 277.93, 284.04, 289.86, 293.85, 296.56, 299.15, 302.1, 304.93, 307.19, 310.19, 313.71, 317.6, 319.19, 320.09, 320.34, 320.17, 319.53, 316.61, 313.82, 311.35, 306.88, 302.83, 299.66, 297.89, 296.74, 296.53, 295.64, 295.22, 296.26, 297.01, 296.38, 296.17, 298.35, 299.87, 302.92, 307.67, 310.99, 312.81, 314.79], smooth: true, lineStyle: { width: 1, color: '#27ae60' }, symbol: 'none' },
+    { name: 'MA60', type: 'line', data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 171.36, 173.42, 175.42, 177.35, 179.47, 181.25, 183.02, 184.55, 186.29, 187.88, 189.38, 190.91, 192.58, 194.36, 196.04, 197.91, 199.74, 201.5, 203.23, 204.86, 206.36, 207.84, 209.19, 210.51, 212.22, 213.82, 215.3, 216.72, 218.08, 219.45, 220.45, 221.44, 222.48, 223.56, 224.54, 225.39, 225.76, 225.71, 225.98, 226.38, 226.59, 226.94, 227.0, 227.14, 227.49, 228.18, 228.87, 229.53, 230.27, 230.74, 230.56, 230.28, 229.71, 229.07, 228.4, 227.74, 227.39, 226.7, 226.12, 225.46, 224.62, 223.96, 223.44, 222.97, 222.36, 222.09, 221.74, 221.97, 222.07, 222.28, 222.41, 222.79, 223.0, 223.05, 223.38, 223.46, 224.08, 224.79, 225.28, 225.86, 226.55, 227.25, 227.88, 228.59, 228.8, 229.11, 229.43, 229.71, 230.09, 230.54, 231.32, 232.01, 232.8, 233.57, 234.12, 234.79, 235.54, 236.44, 237.2, 237.61, 237.93, 238.38, 238.86, 239.34, 239.86, 240.36, 240.71, 240.99, 241.24, 241.48, 241.84, 242.17, 242.48, 242.48, 242.65, 242.88, 242.93, 242.96, 242.89, 242.72, 242.76, 242.66, 242.47, 242.36, 242.4, 242.42, 242.57, 242.63, 242.67, 242.77, 243.06, 243.2, 243.4, 243.53, 243.59, 243.74, 243.69, 243.82, 244.03, 244.13, 244.55, 245.82, 247.16, 248.14, 249.76, 251.39, 253.12, 254.57, 255.58, 256.47, 257.35, 258.38, 259.13, 260.02, 261.37, 262.95, 264.02, 264.91, 265.49, 266.06, 266.86, 267.57, 268.3, 268.9, 269.1, 269.5, 270.21, 271.11, 271.88, 273.09, 274.14, 275.56, 277.42, 279.43, 281.15, 283.15, 285.51, 287.58, 289.89, 292.56, 294.72, 296.54, 298.4], smooth: true, lineStyle: { width: 1, color: '#9b59b6' }, symbol: 'none' }
+  ]
+});
+
+// 2. 累计收益率
+var chartCumret = echarts.init(document.getElementById('chart-cumret'));
+var cumData = [0.15, 0.49, 1.13, 0.03, -0.18, 1.54, 0.57, 1.01, 1.64, 1.96, 1.22, 1.0, 0.03, -0.1, 1.03, 4.54, 3.43, 5.63, 3.84, 2.95, 1.91, 5.42, 5.33, 1.74, 1.21, 0.85, 0.7, 2.82, 3.77, 12.6, 13.5, 12.69, 10.14, 14.89, 14.42, 34.42, 47.34, 41.21, 38.53, 45.33, 40.22, 47.64, 44.26, 40.84, 29.71, 33.24, 33.21, 30.51, 35.97, 55.97, 55.6, 60.82, 67.08, 65.74, 66.2, 62.98, 73.68, 71.17, 73.22, 76.31, 73.02, 71.76, 70.5, 74.64, 66.44, 67.48, 60.76, 66.67, 63.33, 61.29, 61.5, 65.07, 67.13, 64.8, 70.25, 71.06, 68.95, 69.4, 65.9, 62.18, 60.8, 59.71, 58.95, 66.91, 63.98, 60.63, 59.09, 58.45, 59.71, 54.98, 55.6, 56.29, 55.37, 56.21, 52.24, 53.19, 52.44, 55.81, 56.88, 57.51, 56.92, 55.33, 54.18, 56.97, 56.16, 59.25, 58.54, 58.17, 55.47, 54.25, 50.92, 48.33, 53.06, 50.93, 51.61, 57.05, 59.07, 59.24, 59.49, 58.2, 58.95, 61.59, 61.32, 62.03, 61.95, 60.59, 69.09, 71.1, 70.9, 66.64, 73.4, 72.81, 70.54, 75.29, 74.61, 87.95, 88.08, 83.75, 82.66, 81.84, 80.94, 78.36, 79.56, 74.97, 74.65, 71.67, 69.28, 71.18, 74.24, 77.79, 76.25, 79.13, 77.88, 73.66, 72.99, 75.51, 78.84, 78.02, 71.08, 69.01, 71.97, 71.52, 70.09, 73.9, 72.56, 71.66, 69.07, 68.27, 65.38, 67.28, 63.49, 60.7, 56.36, 59.37, 61.31, 61.91, 62.94, 60.57, 58.04, 62.82, 59.5, 59.86, 61.62, 66.66, 66.01, 68.13, 73.92, 75.36, 76.66, 77.05, 79.82, 80.5, 76.98, 79.61, 81.23, 89.43, 93.39, 90.93, 87.39, 93.66, 109.92, 109.1, 103.74, 111.75, 111.76, 111.47, 104.87, 98.04, 98.25, 101.01, 102.52, 99.45, 101.21, 106.74, 110.22, 103.08, 102.31, 95.8, 89.49, 92.45, 93.31, 93.26, 89.15, 83.91, 87.18, 93.38, 95.15, 91.75, 98.65, 96.98, 101.7, 108.12, 107.91, 104.81, 111.15, 118.02, 113.75, 116.64, 120.99, 115.48, 107.59, 108.56];
+var dates2 = ["2025-07-04", "2025-07-07", "2025-07-08", "2025-07-09", "2025-07-10", "2025-07-11", "2025-07-14", "2025-07-15", "2025-07-16", "2025-07-17", "2025-07-18", "2025-07-21", "2025-07-22", "2025-07-23", "2025-07-24", "2025-07-25", "2025-07-28", "2025-07-29", "2025-07-30", "2025-07-31", "2025-08-01", "2025-08-04", "2025-08-05", "2025-08-06", "2025-08-07", "2025-08-08", "2025-08-11", "2025-08-12", "2025-08-13", "2025-08-14", "2025-08-15", "2025-08-18", "2025-08-19", "2025-08-20", "2025-08-21", "2025-08-22", "2025-08-25", "2025-08-26", "2025-08-27", "2025-08-28", "2025-08-29", "2025-09-01", "2025-09-02", "2025-09-03", "2025-09-04", "2025-09-05", "2025-09-08", "2025-09-09", "2025-09-10", "2025-09-11", "2025-09-12", "2025-09-15", "2025-09-16", "2025-09-17", "2025-09-18", "2025-09-19", "2025-09-22", "2025-09-23", "2025-09-24", "2025-09-25", "2025-09-26", "2025-09-29", "2025-09-30", "2025-10-09", "2025-10-10", "2025-10-13", "2025-10-14", "2025-10-15", "2025-10-16", "2025-10-17", "2025-10-20", "2025-10-21", "2025-10-22", "2025-10-23", "2025-10-24", "2025-10-27", "2025-10-28", "2025-10-29", "2025-10-30", "2025-10-31", "2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06", "2025-11-07", "2025-11-10", "2025-11-11", "2025-11-12", "2025-11-13", "2025-11-14", "2025-11-17", "2025-11-18", "2025-11-19", "2025-11-20", "2025-11-21", "2025-11-24", "2025-11-25", "2025-11-26", "2025-11-27", "2025-11-28", "2025-12-01", "2025-12-02", "2025-12-03", "2025-12-04", "2025-12-05", "2025-12-08", "2025-12-09", "2025-12-10", "2025-12-11", "2025-12-12", "2025-12-15", "2025-12-16", "2025-12-17", "2025-12-18", "2025-12-19", "2025-12-22", "2025-12-23", "2025-12-24", "2025-12-25", "2025-12-26", "2025-12-29", "2025-12-30", "2025-12-31", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-30", "2026-03-31", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-03"];
+chartCumret.setOption({
+  backgroundColor: 'transparent',
+  tooltip: { trigger: 'axis', formatter: function(p) { return p[0].name + '<br/>累计收益: ' + p[0].value + '%'; } },
+  grid: { left: 60, right: 30, top: 30, bottom: 70 },
+  dataZoom: [{ type: 'inside', start: 0, end: 100 }, { type: 'slider', bottom: 15, height: 18 }],
+  xAxis: { type: 'category', data: dates2, axisLabel: { fontSize: 10 } },
+  yAxis: { type: 'value', name: '累计收益率(%)', axisLabel: { formatter: '{value}%' } },
+  series: [{
+    type: 'line', data: cumData, smooth: true, symbol: 'none',
+    lineStyle: { width: 2, color: '#1a237e' },
+    areaStyle: { color: function() {
+      var ret = cumData;
+      return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+        { offset: 0, color: 'rgba(231,76,60,0.2)' },
+        { offset: 1, color: 'rgba(39,174,96,0.05)' }
+      ]);
+    }() },
+    markLine: { data: [{ yAxis: 0 }], lineStyle: { color: '#bdc3c7', type: 'dashed' }, label: { formatter: '0%' } }
+  }]
+});
+
+// 3. 月度表现
+var chartMonthly = echarts.init(document.getElementById('chart-monthly'));
+chartMonthly.setOption({
+  backgroundColor: 'transparent',
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+  legend: { data: ['月涨跌幅(%)', '月成交量(亿股)'], top: 5 },
+  grid: { left: 60, right: 60, top: 50, bottom: 30 },
+  xAxis: { type: 'category', data: ["2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07"] },
+  yAxis: [
+    { type: 'value', name: '涨跌幅(%)', axisLabel: { formatter: '{value}%' } },
+    { type: 'value', name: '成交量(亿股)', axisLabel: { formatter: '{value}' }, splitLine: { show: false } }
+  ],
+  series: [
+    { name: '月涨跌幅(%)', type: 'bar', data: [2.84, 39.74, 29.86, -9.21, -5.25, 3.27, 17.84, -1.26, -19.47, 40.9, -0.79, 26.0, -12.13].map(function(v) { return { value: v, itemStyle: { color: v >= 0 ? upColor : downColor } }; }), barWidth: '40%', label: { show: true, position: 'top', formatter: '{c}%', fontSize: 10 } },
+    { name: '月成交量(亿股)', type: 'line', yAxisIndex: 1, data: [3.43, 9.68, 11.89, 5.78, 4.22, 4.86, 6.83, 3.0, 4.31, 6.33, 8.39, 8.56, 1.1], smooth: true, lineStyle: { width: 2, color: '#3949ab' }, itemStyle: { color: '#3949ab' } }
+  ]
+});
+
+// 4. 涨跌幅分布
+var chartDist = echarts.init(document.getElementById('chart-dist'));
+chartDist.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '日涨跌幅区间分布', left: 'center', textStyle: { fontSize: 14, color: '#1a237e' } },
+  tooltip: { trigger: 'item', formatter: '{b}<br/>天数: {c} ({d}%)' },
+  legend: { bottom: 5, textStyle: { fontSize: 11 } },
+  series: [{
+    type: 'pie', radius: ['35%', '65%'], center: ['50%', '50%'],
+    data: ["跌幅>5%", "跌幅3%-5%", "跌幅1%-3%", "跌幅0%-1%", "涨幅0%-1%", "涨幅1%-3%", "涨幅3%-5%", "涨幅>5%"].map(function(label, i) { return { name: label, value: [15, 26, 43, 42, 31, 34, 22, 29][i] }; }),
+    itemStyle: { borderRadius: 4, borderColor: '#fff', borderWidth: 2 },
+    label: { formatter: '{b}\n{c}天 ({d}%)', fontSize: 10 },
+    color: ['#27ae60', '#2ecc71', '#a9dfbf', '#d5f5e3', '#fadbd8', '#f5b7b1', '#e74c3c', '#c0392b']
+  }]
+});
+
+// 5. 涨跌幅柱状图
+var chartPctBar = echarts.init(document.getElementById('chart-pct-bar'));
+chartPctBar.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '每日涨跌幅(%)', left: 'center', textStyle: { fontSize: 14, color: '#1a237e' } },
+  tooltip: { trigger: 'axis', formatter: function(p) { return p[0].name + '<br/>涨跌幅: ' + p[0].value + '%'; } },
+  grid: { left: 50, right: 20, top: 40, bottom: 60 },
+  dataZoom: [{ type: 'inside', start: 0, end: 100 }, { type: 'slider', bottom: 15, height: 16 }],
+  xAxis: { type: 'category', data: dates2, axisLabel: { fontSize: 9 } },
+  yAxis: { type: 'value', name: '%', axisLabel: { formatter: '{value}%' } },
+  series: [{
+    type: 'bar', data: [0.15, 0.35, 0.64, -1.1, -0.21, 1.72, -0.97, 0.44, 0.63, 0.32, -0.75, -0.22, -0.97, -0.13, 1.13, 3.5, -1.1, 2.19, -1.78, -0.89, -1.04, 3.51, -0.08, -3.59, -0.53, -0.36, -0.15, 2.13, 0.95, 8.83, 0.9, -0.81, -2.54, 4.75, -0.47, 20.0, 12.92, -6.13, -2.68, 6.8, -5.11, 7.42, -3.38, -3.42, -11.13, 3.53, -0.03, -2.7, 5.46, 20.0, -0.37, 5.22, 6.26, -1.35, 0.46, -3.22, 10.7, -2.51, 2.05, 3.09, -3.29, -1.26, -1.27, 4.14, -8.2, 1.04, -6.72, 5.91, -3.34, -2.04, 0.21, 3.57, 2.06, -2.33, 5.45, 0.81, -2.11, 0.45, -3.5, -3.72, -1.38, -1.09, -0.76, 7.96, -2.92, -3.35, -1.54, -0.64, 1.26, -4.73, 0.62, 0.69, -0.92, 0.84, -3.97, 0.95, -0.75, 3.36, 1.08, 0.63, -0.58, -1.6, -1.15, 2.79, -0.81, 3.09, -0.72, -0.36, -2.7, -1.22, -3.33, -2.59, 4.73, -2.12, 0.68, 5.44, 2.02, 0.17, 0.25, -1.29, 0.75, 2.64, -0.27, 0.71, -0.08, -1.36, 8.5, 2.02, -0.2, -4.26, 6.76, -0.6, -2.27, 4.76, -0.68, 13.34, 0.14, -4.33, -1.09, -0.82, -0.9, -2.58, 1.21, -4.59, -0.32, -2.98, -2.39, 1.89, 3.06, 3.55, -1.54, 2.88, -1.25, -4.22, -0.67, 2.52, 3.32, -0.82, -6.93, -2.07, 2.96, -0.45, -1.43, 3.82, -1.35, -0.9, -2.59, -0.8, -2.89, 1.9, -3.79, -2.79, -4.33, 3.01, 1.94, 0.6, 1.03, -2.36, -2.54, 4.78, -3.32, 0.36, 1.76, 5.04, -0.66, 2.12, 5.79, 1.44, 1.29, 0.4, 2.77, 0.68, -3.53, 2.63, 1.62, 8.2, 3.95, -2.45, -3.54, 6.27, 16.26, -0.82, -5.36, 8.01, 0.0, -0.29, -6.6, -6.82, 0.2, 2.76, 1.51, -3.08, 1.76, 5.53, 3.48, -7.14, -0.77, -6.51, -6.31, 2.95, 0.86, -0.05, -4.1, -5.24, 3.27, 6.2, 1.77, -3.4, 6.9, -1.67, 4.73, 6.42, -0.21, -3.1, 6.34, 6.88, -4.27, 2.88, 4.36, -5.51, -7.89, 0.96].map(function(v) { return { value: v, itemStyle: { color: v >= 0 ? upColor : downColor } }; }),
+    barWidth: '60%'
+  }]
+});
+
+// 6. 成交量
+var chartVolume = echarts.init(document.getElementById('chart-volume'));
+var volData = [1115.0, 723.0, 1007.0, 906.0, 1094.0, 2096.0, 962.0, 1331.0, 1575.0, 1716.0, 1207.0, 1317.0, 2201.0, 2038.0, 1983.0, 3589.0, 1865.0, 2816.0, 1695.0, 3107.0, 2255.0, 3192.0, 1761.0, 4087.0, 2424.0, 1652.0, 1605.0, 4960.0, 3689.0, 7890.0, 4425.0, 4306.0, 3631.0, 4824.0, 4176.0, 7515.0, 10220.0, 5792.0, 6458.0, 6974.0, 4988.0, 6573.0, 5506.0, 3900.0, 6709.0, 4605.0, 3239.0, 2434.0, 4698.0, 7758.0, 8150.0, 6625.0, 6408.0, 4912.0, 7603.0, 4977.0, 7188.0, 5376.0, 5461.0, 4811.0, 3433.0, 4637.0, 3899.0, 4632.0, 4798.0, 3831.0, 4619.0, 3590.0, 2977.0, 2939.0, 2819.0, 3383.0, 3592.0, 2235.0, 4045.0, 3477.0, 2454.0, 2598.0, 3211.0, 2619.0, 2238.0, 1783.0, 1821.0, 4200.0, 2142.0, 2409.0, 1857.0, 1724.0, 1909.0, 1986.0, 1527.0, 1556.0, 1188.0, 1327.0, 1756.0, 1783.0, 2129.0, 2982.0, 3838.0, 2039.0, 2556.0, 1214.0, 1340.0, 1769.0, 2000.0, 2423.0, 2197.0, 4514.0, 2564.0, 3219.0, 1859.0, 1719.0, 2104.0, 1193.0, 1832.0, 3087.0, 2391.0, 1673.0, 1570.0, 1439.0, 1596.0, 2488.0, 1884.0, 2112.0, 2242.0, 2415.0, 5191.0, 3465.0, 2700.0, 2597.0, 4564.0, 2641.0, 3011.0, 4090.0, 3776.0, 6237.0, 5170.0, 4125.0, 3137.0, 2837.0, 3450.0, 2283.0, 2263.0, 2258.0, 2611.0, 1673.0, 1587.0, 2036.0, 1927.0, 2820.0, 1318.0, 1839.0, 1532.0, 2139.0, 1599.0, 2732.0, 3927.0, 2688.0, 3197.0, 1847.0, 2141.0, 1452.0, 2279.0, 2169.0, 1925.0, 1730.0, 1366.0, 2225.0, 1360.0, 1493.0, 1736.0, 2023.0, 2113.0, 2210.0, 2129.0, 2243.0, 1840.0, 1461.0, 1448.0, 1968.0, 1301.0, 1171.0, 1987.0, 3092.0, 1964.0, 2946.0, 4266.0, 2773.0, 3629.0, 2342.0, 3275.0, 2786.0, 2139.0, 2398.0, 3610.0, 5413.0, 4634.0, 3180.0, 3561.0, 4891.0, 6161.0, 4814.0, 4997.0, 5450.0, 4334.0, 4176.0, 4229.0, 5767.0, 3547.0, 4313.0, 4228.0, 5159.0, 3706.0, 5169.0, 5315.0, 4657.0, 3642.0, 4269.0, 4012.0, 2826.0, 3742.0, 2518.0, 3322.0, 3162.0, 3130.0, 6468.0, 4063.0, 4932.0, 3704.0, 2802.0, 4323.0, 5379.0, 4342.0, 3479.0, 4588.0, 6045.0, 3977.0, 4646.0, 4149.0, 4097.0, 3980.0, 2909.0];
+var pctData2 = [0.15, 0.35, 0.64, -1.1, -0.21, 1.72, -0.97, 0.44, 0.63, 0.32, -0.75, -0.22, -0.97, -0.13, 1.13, 3.5, -1.1, 2.19, -1.78, -0.89, -1.04, 3.51, -0.08, -3.59, -0.53, -0.36, -0.15, 2.13, 0.95, 8.83, 0.9, -0.81, -2.54, 4.75, -0.47, 20.0, 12.92, -6.13, -2.68, 6.8, -5.11, 7.42, -3.38, -3.42, -11.13, 3.53, -0.03, -2.7, 5.46, 20.0, -0.37, 5.22, 6.26, -1.35, 0.46, -3.22, 10.7, -2.51, 2.05, 3.09, -3.29, -1.26, -1.27, 4.14, -8.2, 1.04, -6.72, 5.91, -3.34, -2.04, 0.21, 3.57, 2.06, -2.33, 5.45, 0.81, -2.11, 0.45, -3.5, -3.72, -1.38, -1.09, -0.76, 7.96, -2.92, -3.35, -1.54, -0.64, 1.26, -4.73, 0.62, 0.69, -0.92, 0.84, -3.97, 0.95, -0.75, 3.36, 1.08, 0.63, -0.58, -1.6, -1.15, 2.79, -0.81, 3.09, -0.72, -0.36, -2.7, -1.22, -3.33, -2.59, 4.73, -2.12, 0.68, 5.44, 2.02, 0.17, 0.25, -1.29, 0.75, 2.64, -0.27, 0.71, -0.08, -1.36, 8.5, 2.02, -0.2, -4.26, 6.76, -0.6, -2.27, 4.76, -0.68, 13.34, 0.14, -4.33, -1.09, -0.82, -0.9, -2.58, 1.21, -4.59, -0.32, -2.98, -2.39, 1.89, 3.06, 3.55, -1.54, 2.88, -1.25, -4.22, -0.67, 2.52, 3.32, -0.82, -6.93, -2.07, 2.96, -0.45, -1.43, 3.82, -1.35, -0.9, -2.59, -0.8, -2.89, 1.9, -3.79, -2.79, -4.33, 3.01, 1.94, 0.6, 1.03, -2.36, -2.54, 4.78, -3.32, 0.36, 1.76, 5.04, -0.66, 2.12, 5.79, 1.44, 1.29, 0.4, 2.77, 0.68, -3.53, 2.63, 1.62, 8.2, 3.95, -2.45, -3.54, 6.27, 16.26, -0.82, -5.36, 8.01, 0.0, -0.29, -6.6, -6.82, 0.2, 2.76, 1.51, -3.08, 1.76, 5.53, 3.48, -7.14, -0.77, -6.51, -6.31, 2.95, 0.86, -0.05, -4.1, -5.24, 3.27, 6.2, 1.77, -3.4, 6.9, -1.67, 4.73, 6.42, -0.21, -3.1, 6.34, 6.88, -4.27, 2.88, 4.36, -5.51, -7.89, 0.96];
+chartVolume.setOption({
+  backgroundColor: 'transparent',
+  tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, formatter: function(p) {
+    var s = p[0].name;
+    p.forEach(function(item) {
+      if (item.seriesName === '成交量') s += '<br/>' + item.seriesName + ': ' + item.value + '万股';
+      else s += '<br/>' + item.seriesName + ': ' + item.value + '%';
+    });
+    return s;
+  } },
+  legend: { data: ['成交量', '涨跌幅(%)'], top: 5 },
+  grid: { left: 60, right: 60, top: 45, bottom: 70 },
+  dataZoom: [{ type: 'inside', start: 0, end: 100 }, { type: 'slider', bottom: 15, height: 18 }],
+  xAxis: { type: 'category', data: dates2, axisLabel: { fontSize: 10 } },
+  yAxis: [
+    { type: 'value', name: '成交量(万股)', axisLabel: { formatter: function(v) { return v >= 10000 ? (v/10000).toFixed(1) + '万' : v; } } },
+    { type: 'value', name: '涨跌幅(%)', axisLabel: { formatter: '{value}%' }, splitLine: { show: false } }
+  ],
+  series: [
+    { name: '成交量', type: 'bar', data: volData.map(function(v, i) { return { value: v, itemStyle: { color: pctData2[i] >= 0 ? 'rgba(231,76,60,0.7)' : 'rgba(39,174,96,0.7)' } }; }), barWidth: '60%' },
+    { name: '涨跌幅(%)', type: 'line', yAxisIndex: 1, data: pctData2, smooth: true, symbol: 'none', lineStyle: { width: 1.5, color: '#3949ab' } }
+  ]
+});
+
+// 7. 量价散点图
+var chartVolScatter = echarts.init(document.getElementById('chart-vol-scatter'));
+chartVolScatter.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '成交量 vs 涨跌幅 散点图', left: 'center', textStyle: { fontSize: 13, color: '#1a237e' } },
+  tooltip: { formatter: function(p) { return '成交量: ' + p.value[0] + '万股<br/>涨跌幅: ' + p.value[1] + '%'; } },
+  grid: { left: 60, right: 20, top: 40, bottom: 40 },
+  xAxis: { type: 'value', name: '成交量(万股)', nameLocation: 'middle', nameGap: 25 },
+  yAxis: { type: 'value', name: '涨跌幅(%)', axisLabel: { formatter: '{value}%' } },
+  series: [{
+    type: 'scatter', data: [[1115.0, 0.15], [723.0, 0.35], [1007.0, 0.64], [906.0, -1.1], [1094.0, -0.21], [2096.0, 1.72], [962.0, -0.97], [1331.0, 0.44], [1575.0, 0.63], [1716.0, 0.32], [1207.0, -0.75], [1317.0, -0.22], [2201.0, -0.97], [2038.0, -0.13], [1983.0, 1.13], [3589.0, 3.5], [1865.0, -1.1], [2816.0, 2.19], [1695.0, -1.78], [3107.0, -0.89], [2255.0, -1.04], [3192.0, 3.51], [1761.0, -0.08], [4087.0, -3.59], [2424.0, -0.53], [1652.0, -0.36], [1605.0, -0.15], [4960.0, 2.13], [3689.0, 0.95], [7890.0, 8.83], [4425.0, 0.9], [4306.0, -0.81], [3631.0, -2.54], [4824.0, 4.75], [4176.0, -0.47], [7515.0, 20.0], [10220.0, 12.92], [5792.0, -6.13], [6458.0, -2.68], [6974.0, 6.8], [4988.0, -5.11], [6573.0, 7.42], [5506.0, -3.38], [3900.0, -3.42], [6709.0, -11.13], [4605.0, 3.53], [3239.0, -0.03], [2434.0, -2.7], [4698.0, 5.46], [7758.0, 20.0], [8150.0, -0.37], [6625.0, 5.22], [6408.0, 6.26], [4912.0, -1.35], [7603.0, 0.46], [4977.0, -3.22], [7188.0, 10.7], [5376.0, -2.51], [5461.0, 2.05], [4811.0, 3.09], [3433.0, -3.29], [4637.0, -1.26], [3899.0, -1.27], [4632.0, 4.14], [4798.0, -8.2], [3831.0, 1.04], [4619.0, -6.72], [3590.0, 5.91], [2977.0, -3.34], [2939.0, -2.04], [2819.0, 0.21], [3383.0, 3.57], [3592.0, 2.06], [2235.0, -2.33], [4045.0, 5.45], [3477.0, 0.81], [2454.0, -2.11], [2598.0, 0.45], [3211.0, -3.5], [2619.0, -3.72], [2238.0, -1.38], [1783.0, -1.09], [1821.0, -0.76], [4200.0, 7.96], [2142.0, -2.92], [2409.0, -3.35], [1857.0, -1.54], [1724.0, -0.64], [1909.0, 1.26], [1986.0, -4.73], [1527.0, 0.62], [1556.0, 0.69], [1188.0, -0.92], [1327.0, 0.84], [1756.0, -3.97], [1783.0, 0.95], [2129.0, -0.75], [2982.0, 3.36], [3838.0, 1.08], [2039.0, 0.63], [2556.0, -0.58], [1214.0, -1.6], [1340.0, -1.15], [1769.0, 2.79], [2000.0, -0.81], [2423.0, 3.09], [2197.0, -0.72], [4514.0, -0.36], [2564.0, -2.7], [3219.0, -1.22], [1859.0, -3.33], [1719.0, -2.59], [2104.0, 4.73], [1193.0, -2.12], [1832.0, 0.68], [3087.0, 5.44], [2391.0, 2.02], [1673.0, 0.17], [1570.0, 0.25], [1439.0, -1.29], [1596.0, 0.75], [2488.0, 2.64], [1884.0, -0.27], [2112.0, 0.71], [2242.0, -0.08], [2415.0, -1.36], [5191.0, 8.5], [3465.0, 2.02], [2700.0, -0.2], [2597.0, -4.26], [4564.0, 6.76], [2641.0, -0.6], [3011.0, -2.27], [4090.0, 4.76], [3776.0, -0.68], [6237.0, 13.34], [5170.0, 0.14], [4125.0, -4.33], [3137.0, -1.09], [2837.0, -0.82], [3450.0, -0.9], [2283.0, -2.58], [2263.0, 1.21], [2258.0, -4.59], [2611.0, -0.32], [1673.0, -2.98], [1587.0, -2.39], [2036.0, 1.89], [1927.0, 3.06], [2820.0, 3.55], [1318.0, -1.54], [1839.0, 2.88], [1532.0, -1.25], [2139.0, -4.22], [1599.0, -0.67], [2732.0, 2.52], [3927.0, 3.32], [2688.0, -0.82], [3197.0, -6.93], [1847.0, -2.07], [2141.0, 2.96], [1452.0, -0.45], [2279.0, -1.43], [2169.0, 3.82], [1925.0, -1.35], [1730.0, -0.9], [1366.0, -2.59], [2225.0, -0.8], [1360.0, -2.89], [1493.0, 1.9], [1736.0, -3.79], [2023.0, -2.79], [2113.0, -4.33], [2210.0, 3.01], [2129.0, 1.94], [2243.0, 0.6], [1840.0, 1.03], [1461.0, -2.36], [1448.0, -2.54], [1968.0, 4.78], [1301.0, -3.32], [1171.0, 0.36], [1987.0, 1.76], [3092.0, 5.04], [1964.0, -0.66], [2946.0, 2.12], [4266.0, 5.79], [2773.0, 1.44], [3629.0, 1.29], [2342.0, 0.4], [3275.0, 2.77], [2786.0, 0.68], [2139.0, -3.53], [2398.0, 2.63], [3610.0, 1.62], [5413.0, 8.2], [4634.0, 3.95], [3180.0, -2.45], [3561.0, -3.54], [4891.0, 6.27], [6161.0, 16.26], [4814.0, -0.82], [4997.0, -5.36], [5450.0, 8.01], [4334.0, 0.0], [4176.0, -0.29], [4229.0, -6.6], [5767.0, -6.82], [3547.0, 0.2], [4313.0, 2.76], [4228.0, 1.51], [5159.0, -3.08], [3706.0, 1.76], [5169.0, 5.53], [5315.0, 3.48], [4657.0, -7.14], [3642.0, -0.77], [4269.0, -6.51], [4012.0, -6.31], [2826.0, 2.95], [3742.0, 0.86], [2518.0, -0.05], [3322.0, -4.1], [3162.0, -5.24], [3130.0, 3.27], [6468.0, 6.2], [4063.0, 1.77], [4932.0, -3.4], [3704.0, 6.9], [2802.0, -1.67], [4323.0, 4.73], [5379.0, 6.42], [4342.0, -0.21], [3479.0, -3.1], [4588.0, 6.34], [6045.0, 6.88], [3977.0, -4.27], [4646.0, 2.88], [4149.0, 4.36], [4097.0, -5.51], [3980.0, -7.89], [2909.0, 0.96]], symbolSize: 5,
+    itemStyle: { color: 'rgba(57,73,171,0.4)', borderColor: '#3949ab', borderWidth: 0.5 },
+    markLine: { data: [{ yAxis: 0 }], lineStyle: { color: '#bdc3c7', type: 'dashed' } }
+  }]
+});
+
+// 8. 成交额面积图
+var chartVolDual = echarts.init(document.getElementById('chart-vol-dual'));
+chartVolDual.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '每日成交额(亿元)', left: 'center', textStyle: { fontSize: 13, color: '#1a237e' } },
+  tooltip: { trigger: 'axis', formatter: function(p) { return p[0].name + '<br/>成交额: ' + p[0].value + '亿元'; } },
+  grid: { left: 60, right: 20, top: 40, bottom: 50 },
+  xAxis: { type: 'category', data: dates2, axisLabel: { fontSize: 9, interval: 30 } },
+  yAxis: { type: 'value', name: '亿元' },
+  series: [{
+    type: 'bar', data: [15.15, 9.82, 13.75, 12.34, 14.81, 28.81, 13.14, 18.17, 21.69, 23.47, 16.55, 18.04, 29.95, 27.61, 27.07, 50.0, 26.07, 39.98, 23.93, 43.9, 31.52, 45.51, 24.89, 56.13, 33.29, 22.5, 21.84, 68.96, 51.78, 120.2, 67.7, 65.93, 54.73, 73.39, 65.61, 133.1, 210.36, 115.72, 127.78, 137.75, 97.9, 134.49, 112.53, 76.18, 120.44, 80.45, 57.81, 42.81, 86.56, 159.97, 182.2, 154.22, 157.95, 117.81, 191.2, 119.73, 181.79, 137.53, 141.2, 129.65, 90.5, 117.51, 99.59, 123.77, 117.97, 93.17, 108.23, 84.51, 69.61, 67.48, 65.31, 79.3, 86.41, 52.43, 99.17, 86.75, 60.87, 64.14, 77.55, 60.65, 50.18, 40.29, 40.11, 99.41, 50.11, 54.0, 41.75, 37.74, 42.07, 42.79, 32.7, 33.58, 25.59, 28.68, 36.56, 37.06, 44.17, 63.72, 85.83, 43.94, 54.9, 25.85, 28.37, 37.69, 42.52, 53.59, 48.28, 96.42, 54.57, 67.18, 38.18, 34.17, 42.74, 24.3, 37.87, 65.47, 52.46, 36.58, 34.79, 31.46, 35.08, 56.15, 42.6, 47.53, 50.82, 53.55, 126.59, 84.01, 66.34, 62.11, 114.28, 66.04, 74.05, 104.21, 98.83, 177.46, 152.02, 113.82, 86.47, 77.44, 91.99, 60.71, 59.69, 58.25, 65.19, 40.77, 37.97, 49.03, 47.99, 74.37, 33.62, 48.11, 40.05, 53.96, 39.66, 68.53, 100.62, 69.96, 78.58, 43.91, 51.97, 34.88, 52.84, 53.65, 47.97, 42.22, 32.37, 51.1, 31.36, 34.1, 38.91, 44.31, 44.35, 46.2, 46.33, 50.07, 40.16, 31.48, 30.88, 43.1, 27.89, 25.22, 43.49, 70.29, 44.66, 68.73, 105.75, 68.77, 92.89, 58.96, 86.08, 73.79, 54.02, 61.7, 96.15, 152.61, 138.49, 93.14, 98.89, 143.91, 212.4, 163.06, 162.43, 186.42, 150.57, 141.65, 141.36, 178.21, 108.96, 129.9, 134.05, 167.69, 114.29, 166.2, 174.58, 152.7, 114.12, 129.28, 115.31, 79.64, 108.29, 71.76, 92.07, 82.84, 82.81, 188.82, 116.36, 143.28, 109.4, 82.54, 129.23, 174.75, 141.35, 111.97, 149.62, 215.0, 138.18, 164.14, 153.57, 148.02, 132.86, 95.07].map(function(v, i) { return { value: v, itemStyle: { color: pctData2[i] >= 0 ? 'rgba(231,76,60,0.6)' : 'rgba(39,174,96,0.6)' } }; }),
+    barWidth: '70%'
+  }]
+});
+
+// 9. 滚动波动率
+var chartVolatility = echarts.init(document.getElementById('chart-volatility'));
+chartVolatility.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '20日滚动年化波动率 (%)', left: 'center', textStyle: { fontSize: 14, color: '#1a237e' } },
+  tooltip: { trigger: 'axis', formatter: function(p) { return p[0].name + '<br/>年化波动率: ' + (p[0].value === null ? 'N/A' : p[0].value + '%'); } },
+  grid: { left: 60, right: 30, top: 45, bottom: 60 },
+  dataZoom: [{ type: 'inside', start: 0, end: 100 }, { type: 'slider', bottom: 15, height: 16 }],
+  xAxis: { type: 'category', data: dates2, axisLabel: { fontSize: 10 } },
+  yAxis: { type: 'value', name: '%', axisLabel: { formatter: '{value}%' } },
+  series: [{
+    type: 'line', data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 20.3, 20.74, 24.03, 24.01, 27.23, 27.3, 26.63, 26.4, 27.43, 27.54, 41.45, 41.19, 41.41, 42.55, 45.03, 45.21, 81.93, 90.69, 95.38, 95.87, 96.96, 99.76, 101.54, 103.15, 103.03, 112.82, 112.85, 112.83, 113.84, 114.73, 129.91, 130.15, 130.12, 129.43, 130.05, 129.8, 113.65, 110.92, 108.41, 107.29, 105.77, 104.43, 102.59, 101.6, 100.47, 95.94, 95.77, 100.22, 100.24, 100.85, 73.47, 73.43, 72.18, 68.98, 69.33, 72.02, 70.89, 59.95, 59.38, 59.99, 59.66, 58.94, 58.92, 58.87, 64.26, 58.2, 59.12, 54.37, 49.55, 48.63, 50.88, 50.96, 49.05, 48.17, 47.96, 44.16, 44.24, 44.0, 46.28, 45.42, 43.86, 43.68, 43.85, 43.94, 33.79, 32.59, 32.85, 32.48, 32.43, 33.4, 29.15, 31.27, 32.14, 36.83, 37.31, 34.75, 39.73, 40.07, 38.44, 38.29, 38.57, 38.57, 39.02, 38.71, 37.67, 37.49, 36.39, 46.93, 47.09, 45.55, 48.49, 50.76, 49.3, 48.96, 49.46, 49.89, 64.6, 64.76, 67.84, 68.26, 68.06, 68.45, 69.4, 69.28, 71.99, 72.03, 72.85, 67.13, 67.08, 67.94, 66.84, 63.01, 63.67, 63.23, 62.99, 62.99, 39.9, 42.24, 39.74, 46.19, 46.49, 48.2, 47.53, 47.32, 47.03, 47.24, 46.13, 46.27, 45.78, 45.12, 43.53, 44.94, 43.54, 45.19, 45.8, 46.76, 45.55, 43.56, 43.91, 38.28, 42.41, 41.84, 41.98, 42.65, 44.44, 44.31, 45.08, 48.8, 48.81, 47.36, 47.1, 44.9, 42.85, 41.59, 41.37, 41.3, 48.51, 49.34, 49.43, 50.64, 52.19, 70.91, 71.5, 76.71, 78.91, 78.62, 79.15, 83.72, 88.84, 88.9, 89.06, 88.87, 90.12, 88.58, 89.79, 90.1, 91.31, 90.6, 93.42, 95.4, 93.26, 70.86, 70.91, 69.97, 63.53, 65.5, 70.58, 67.82, 64.59, 69.49, 68.95, 70.92, 73.49, 73.36, 71.63, 74.19, 72.85, 74.85, 70.36, 65.6, 69.98, 77.0, 76.95], smooth: true, symbol: 'none',
+    lineStyle: { width: 2, color: '#e67e22' },
+    areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(230,126,34,0.25)' }, { offset: 1, color: 'rgba(230,126,34,0.02)' }]) },
+    markLine: { data: [{ yAxis: 30, name: '30%' }, { yAxis: 50, name: '50%' }, { yAxis: 80, name: '80%' }], lineStyle: { type: 'dashed', color: '#bbb' }, label: { formatter: '{name}', fontSize: 10 } }
+  }]
+});
+
+// 10. 20日价格区间
+var chartRange20 = echarts.init(document.getElementById('chart-range20'));
+var rangeData = [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 5.74, 5.73, 5.72, 5.71, 5.71, 5.66, 5.66, 5.66, 5.66, 5.65, 12.44, 13.34, 13.27, 13.2, 13.94, 13.85, 34.41, 49.71, 48.82, 48.01, 47.01, 46.18, 45.24, 44.44, 43.68, 43.22, 42.68, 40.51, 39.36, 34.1, 39.32, 38.62, 43.41, 46.52, 45.51, 35.59, 35.16, 42.0, 41.43, 40.78, 43.26, 42.63, 42.19, 41.71, 41.1, 39.97, 39.43, 39.03, 34.57, 19.54, 19.51, 16.4, 16.38, 16.39, 16.41, 16.4, 16.35, 16.4, 16.42, 16.5, 14.62, 15.31, 16.45, 17.27, 12.27, 12.3, 12.35, 12.62, 13.28, 13.31, 16.7, 16.75, 16.83, 16.94, 17.02, 19.8, 18.11, 18.27, 15.16, 15.24, 15.28, 15.31, 15.35, 15.39, 12.23, 8.65, 7.67, 7.67, 7.67, 6.82, 6.82, 8.39, 10.89, 10.91, 10.94, 10.94, 10.93, 10.89, 10.88, 10.87, 10.87, 10.86, 12.76, 12.72, 13.15, 13.11, 13.11, 20.28, 22.38, 22.21, 22.08, 24.06, 21.59, 21.41, 22.5, 17.49, 29.78, 29.52, 29.18, 28.87, 27.9, 26.22, 26.04, 25.83, 25.7, 25.57, 20.5, 20.51, 20.53, 20.51, 19.42, 19.4, 19.36, 19.3, 19.33, 19.36, 19.49, 14.73, 13.61, 12.81, 12.79, 11.31, 11.36, 10.57, 10.58, 10.6, 10.6, 10.71, 11.5, 14.29, 14.37, 16.3, 18.51, 22.64, 22.81, 22.95, 23.11, 22.39, 17.63, 17.75, 17.81, 17.92, 18.04, 18.12, 16.7, 15.77, 12.98, 17.24, 18.77, 20.11, 20.46, 23.38, 23.92, 22.3, 22.08, 22.55, 31.27, 35.43, 34.9, 33.33, 32.83, 50.2, 47.59, 43.18, 43.96, 41.32, 35.86, 34.17, 32.77, 32.31, 31.99, 31.69, 31.46, 29.01, 27.35, 22.17, 22.06, 22.0, 21.98, 23.06, 23.11, 23.32, 23.53, 24.13, 29.16, 29.22, 27.18, 27.35, 27.45, 27.47, 27.55, 27.59, 27.5, 27.43, 27.49, 26.13, 33.71, 33.54, 33.2, 35.95, 35.56, 35.36, 35.13];
+chartRange20.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '20日价格区间幅度 (%)', left: 'center', textStyle: { fontSize: 13, color: '#1a237e' } },
+  tooltip: { trigger: 'axis', formatter: function(p) { return p[0].name + '<br/>区间幅度: ' + (p[0].value === null ? 'N/A' : p[0].value + '%'); } },
+  grid: { left: 50, right: 20, top: 40, bottom: 40 },
+  xAxis: { type: 'category', data: dates2, axisLabel: { fontSize: 9, interval: 40 } },
+  yAxis: { type: 'value', name: '%', axisLabel: { formatter: '{value}%' } },
+  series: [{
+    type: 'line', data: rangeData, smooth: true, symbol: 'none',
+    lineStyle: { width: 2, color: '#8e44ad' },
+    areaStyle: { color: 'rgba(142,68,173,0.15)' }
+  }]
+});
+
+// 11. 周收益率
+var chartWeeklyRet = echarts.init(document.getElementById('chart-weekly-ret'));
+var weeklyData = [0.15, 1.38, -0.02, 3.11, -2.31, -0.64, 13.01, 20.04, -0.76, -9.85, 22.24, 1.6, 11.68, -2.47, -7.83, -5.29, 5.96, -9.36, 2.96, -8.53, -3.51, 3.99, -2.56, -1.87, -1.79, 5.86, 3.47, 8.37, -0.9, 12.2, -4.01, -6.66, 3.21, -2.15, -5.17, 1.29, -7.98, 3.74, -2.21, 8.33, 8.33, 8.78, -1.25, 0.37, -11.01, 3.1, -5.92, -8.58, 7.49, 13.89, 4.52, -6.49];
+var weeklyLabels = ["2025-W27", "2025-W28", "2025-W29", "2025-W30", "2025-W31", "2025-W32", "2025-W33", "2025-W34", "2025-W35", "2025-W36", "2025-W37", "2025-W38", "2025-W39", "2025-W40", "2025-W41", "2025-W42", "2025-W43", "2025-W44", "2025-W45", "2025-W46", "2025-W47", "2025-W48", "2025-W49", "2025-W50", "2025-W51", "2025-W52", "2026-W01", "2026-W02", "2026-W03", "2026-W04", "2026-W05", "2026-W06", "2026-W07", "2026-W09", "2026-W10", "2026-W11", "2026-W12", "2026-W13", "2026-W14", "2026-W15", "2026-W16", "2026-W17", "2026-W18", "2026-W19", "2026-W20", "2026-W21", "2026-W22", "2026-W23", "2026-W24", "2026-W25", "2026-W26", "2026-W27"];
+chartWeeklyRet.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '周收益率分布 (%)', left: 'center', textStyle: { fontSize: 13, color: '#1a237e' } },
+  tooltip: { trigger: 'axis', formatter: function(p) { return p[0].name + '<br/>周收益: ' + p[0].value + '%'; } },
+  grid: { left: 50, right: 20, top: 40, bottom: 50 },
+  xAxis: { type: 'category', data: weeklyLabels, axisLabel: { fontSize: 8, rotate: 45, interval: 1 } },
+  yAxis: { type: 'value', name: '%', axisLabel: { formatter: '{value}%' } },
+  series: [{
+    type: 'bar', data: weeklyData.map(function(v) { return { value: v, itemStyle: { color: v >= 0 ? upColor : downColor } }; }),
+    barWidth: '60%',
+    markLine: { data: [{ yAxis: 0 }], lineStyle: { color: '#bdc3c7', type: 'dashed' } }
+  }]
+});
+
+// 响应式
+window.addEventListener('resize', function() {
+  [chartPrice, chartCumret, chartMonthly, chartDist, chartPctBar, chartVolume, chartVolScatter, chartVolDual, chartVolatility, chartRange20, chartWeeklyRet].forEach(function(c) { c.resize(); });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 金融数据分析 | 在线学习</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #0f0c29 0%, #1a1a3e 50%, #24243e 100%);
+    min-height: 100vh; color: #e0e0e0;
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+  }
+  .hero h1 {
+    font-size: 36px;
+    background: linear-gradient(90deg, #64ffda, #00bcd4, #7c4dff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+  }
+  .hero p {
+    font-size: 15px;
+    color: #8892b0;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.8;
+  }
+  .hero .meta {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #a8b2d1;
+  }
+  .hero .meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* Content */
+  .container { max-width: 1000px; margin: 0 auto; padding: 0 20px 60px; }
+
+  /* Section */
+  .section-title {
+    font-size: 20px; font-weight: 700; color: #64ffda;
+    margin: 40px 0 20px; padding-bottom: 10px;
+    border-bottom: 1px solid rgba(100,255,218,0.15);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .dot { width: 8px; height: 8px; border-radius: 50%; background: #64ffda; box-shadow: 0 0 10px #64ffda; }
+
+  /* Card Grid */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #64ffda, #7c4dff);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(100,255,218,0.3);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .card:hover::before { opacity: 1; }
+
+  .card .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .card .tag.kline { background: rgba(231,76,60,0.15); color: #e74c3c; }
+  .card .tag.report { background: rgba(100,255,218,0.12); color: #64ffda; }
+  .card .tag.data { background: rgba(255,193,7,0.15); color: #ffc107; }
+  .card .tag.curve { background: rgba(124,77,255,0.15); color: #7c4dff; }
+
+  .card h3 {
+    font-size: 16px;
+    color: #e6f1ff;
+    margin-bottom: 8px;
+  }
+  .card p {
+    font-size: 13px;
+    color: #8892b0;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .card .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #495670;
+  }
+  .card .footer .arrow {
+    color: #64ffda;
+    font-size: 14px;
+    transition: transform 0.3s;
+  }
+  .card:hover .footer .arrow { transform: translateX(4px); }
+
+  /* Stock badge */
+  .stock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(100,255,218,0.08);
+    border: 1px solid rgba(100,255,218,0.2);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: #64ffda;
+    margin-bottom: 8px;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 30px 20px;
+    color: #495670;
+    font-size: 12px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .footer a { color: #64ffda; text-decoration: none; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 26px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>AI 金融数据分析</h1>
+  <p>基于 Tushare 数据源的 A 股个股多维可视化分析平台，涵盖 K 线图、收盘价曲线、成交量分析及综合数据报告</p>
+  <div class="meta">
+    <span>📊 数据源：Tushare</span>
+    <span>📈 可视化：ECharts</span>
+    <span>🔄 更新日期：2026-07-04</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 中芯国际 -->
+  <div class="section-title"><span class="dot"></span>中芯国际 (688981.SH)</div>
+  <div class="stock-badge">
+    <span>🔬 半导体制造龙头</span>
+  </div>
+  <div class="card-grid" style="margin-top:16px">
+    <a class="card" href="deploy/index.html">
+      <span class="tag kline">K线图</span>
+      <h3>中芯国际 K线图 + 成交量</h3>
+      <p>近一年蜡烛图，含 MA5/10/20/60 均线、成交量柱状图、涨跌着色、交互缩放</p>
+      <div class="footer">
+        <span>deploy/index.html</span>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- 海光信息 -->
+  <div class="section-title"><span class="dot"></span>海光信息 (688041.SH)</div>
+  <div class="stock-badge">
+    <span>💻 国产 CPU/DCU 设计</span>
+  </div>
+  <div class="card-grid" style="margin-top:16px">
+    <a class="card" href="海光信息_688041_K线图.html">
+      <span class="tag kline">K线图</span>
+      <h3>海光信息 K线图 + 成交量</h3>
+      <p>242 个交易日蜡烛图，MA5/10/20/60 均线，成交量联动，时间范围切换</p>
+      <div class="footer">
+        <span>年涨幅 +140.0%</span>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+    <a class="card" href="海光信息_688041_收盘价曲线图.html">
+      <span class="tag curve">曲线图</span>
+      <h3>海光信息 收盘价曲线图</h3>
+      <p>渐变面积折线图，涨跌点着色，最高/最低标注，dataZoom 滑块缩放</p>
+      <div class="footer">
+        <span>最新价 ¥325.40</span>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+    <a class="card" href="海光信息_688041_数据分析报告.html">
+      <span class="tag report">分析报告</span>
+      <h3>海光信息 综合数据分析报告</h3>
+      <p>10 大分析板块、11 张图表：价格走势、月度表现、波动率、量价关系、技术指标</p>
+      <div class="footer">
+        <span>年化波动率 66.8%</span>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+    <a class="card" href="海光信息_688041_近一年数据.csv">
+      <span class="tag data">原始数据</span>
+      <h3>海光信息 原始交易数据 (CSV)</h3>
+      <p>242 个交易日完整数据：开高低收、涨跌额/幅、成交量、成交额</p>
+      <div class="footer">
+        <span>CSV · 242 行</span>
+        <span class="arrow">↓</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- 中芯国际数据 -->
+  <div class="section-title"><span class="dot"></span>数据文件</div>
+  <div class="card-grid" style="margin-top:16px">
+    <a class="card" href="中芯国际_688981_近一年数据.csv">
+      <span class="tag data">原始数据</span>
+      <h3>中芯国际 原始交易数据 (CSV)</h3>
+      <p>近一年每日交易数据：开高低收、涨跌额/幅、成交量、成交额</p>
+      <div class="footer">
+        <span>CSV</span>
+        <span class="arrow">↓</span>
+      </div>
+    </a>
+    <a class="card" href="中芯国际_688981_数据分析.ipynb">
+      <span class="tag data">Notebook</span>
+      <h3>中芯国际 数据分析 (Jupyter)</h3>
+      <p>Python 数据分析 Notebook，含数据加载、清洗、可视化全流程</p>
+      <div class="footer">
+        <span>.ipynb</span>
+        <span class="arrow">↓</span>
+      </div>
+    </a>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>AI 金融数据分析平台 · 数据来源 <a href="https://tushare.pro" target="_blank">Tushare</a> · 可视化 <a href="https://echarts.apache.org" target="_blank">Apache ECharts</a></p>
+  <p style="margin-top:6px">本页面仅供学习交流，不构成投资建议</p>
+</div>
+
+</body>
+</html>
