@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海光信息 (688041.SH) 数据诊断分析报告</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #2c3e50; line-height: 1.7; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  .report-header { background: linear-gradient(135deg, #00695c 0%, #00897b 50%, #26a69a 100%); color: white; padding: 36px 30px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,105,92,0.15); }
+  .report-header h1 { font-size: 26px; margin-bottom: 8px; }
+  .report-header .subtitle { font-size: 14px; opacity: 0.9; }
+  .report-header .meta { display: flex; gap: 24px; margin-top: 14px; font-size: 13px; opacity: 0.85; flex-wrap: wrap; }
+  .section { background: white; border-radius: 10px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .section-title { font-size: 17px; font-weight: 700; color: #00695c; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #b2dfdb; display: flex; align-items: center; gap: 8px; }
+  .section-title .icon { width: 4px; height: 20px; background: linear-gradient(180deg, #26a69a, #00695c); border-radius: 2px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: #f8f9fa; border-radius: 8px; padding: 16px; text-align: center; border-left: 3px solid #26a69a; }
+  .stat-card .label { font-size: 12px; color: #78909c; margin-bottom: 4px; }
+  .stat-card .value { font-size: 20px; font-weight: 700; color: #00695c; }
+  .stat-card .sub { font-size: 11px; color: #90a4ae; margin-top: 2px; }
+  .stat-card.warn { border-left-color: #ff9800; }
+  .stat-card.warn .value { color: #e65100; }
+  .stat-card.danger { border-left-color: #f44336; }
+  .stat-card.danger .value { color: #c62828; }
+  .stat-card.ok { border-left-color: #4caf50; }
+  .stat-card.ok .value { color: #2e7d32; }
+  .chart-box { width: 100%; height: 380px; }
+  .chart-box.short { height: 300px; }
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th { background: #e0f2f1; color: #00695c; padding: 10px 6px; text-align: center; font-weight: 600; border-bottom: 2px solid #b2dfdb; white-space: nowrap; }
+  tbody td { padding: 8px 6px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+  tbody tr:hover { background: #f5f5f5; }
+  tbody tr:nth-child(even) { background: #fafbfc; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .badge.red { background: #ffebee; color: #c62828; }
+  .badge.green { background: #e8f5e9; color: #2e7d32; }
+  .badge.yellow { background: #fff8e1; color: #e65100; }
+  .badge.blue { background: #e3f2fd; color: #1565c0; }
+  .ok-text { color: #2e7d32; font-weight: 600; }
+  .warn-text { color: #e65100; font-weight: 600; }
+  .danger-text { color: #c62828; font-weight: 600; }
+  .bar-bg { width: 100%; height: 14px; background: #f0f0f0; border-radius: 7px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 7px; transition: width 0.5s; }
+  .bar-fill.ok { background: linear-gradient(90deg, #66bb6a, #4caf50); }
+  .bar-fill.warn { background: linear-gradient(90deg, #ffa726, #ef6c00); }
+  .analysis { font-size: 14px; color: #37474f; line-height: 1.9; }
+  .analysis .highlight { color: #00695c; font-weight: 700; }
+  .insight { background: linear-gradient(135deg, #e0f2f1, #b2dfdb); border-left: 4px solid #00897b; padding: 14px 20px; border-radius: 6px; margin-top: 12px; font-size: 14px; }
+  .insight strong { color: #00695c; }
+  .quality-score { display: flex; align-items: center; gap: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 16px; }
+  .quality-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: white; }
+  .quality-circle.excellent { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
+  .quality-circle.good { background: linear-gradient(135deg, #26c6da, #00838f); }
+  .quality-circle.fair { background: linear-gradient(135deg, #ffa726, #e65100); }
+  .quality-circle.poor { background: linear-gradient(135deg, #ef5350, #c62828); }
+  .footer { text-align: center; color: #90a4ae; font-size: 12px; padding: 20px; }
+  @media (max-width: 768px) { .chart-row { grid-template-columns: 1fr; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="report-header">
+  <h1>海光信息 (688041.SH) 数据诊断分析报告</h1>
+  <div class="subtitle">基础数据质量诊断 · 缺失值检查 · 描述性统计 · 异常值检测 · 分布检验 · 一致性验证</div>
+  <div class="meta">
+    <span>📅 2025-07-04 ~ 2026-07-03</span>
+    <span>📊 记录数：242 条</span>
+    <span>🗂️ 字段数：10 个</span>
+    <span>💰 数据来源：Tushare</span>
+    <span>🕐 生成时间：2026-07-04</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon"></span>数据质量总评</div>
+  <div class="quality-score">
+    <div class="quality-circle excellent">100</div>
+    <div>
+      <div style="font-size:16px;font-weight:700;color:#00695c">数据质量评分：100/100 ⭐ 优秀</div>
+      <div style="font-size:13px;color:#78909c;margin-top:4px">
+        缺失值：0 个 | 解析错误：0 个 | 一致性异常：0 个 | 重复记录：0 个 | 日期间隔异常：2 处
+      </div>
+    </div>
+  </div>
+  <div class="insight">
+    <strong>诊断结论：</strong>
+    数据集质量优秀，所有字段无缺失值，数据类型解析无误，逻辑一致性检查全部通过，可直接用于后续分析。
+    共检测 10 个字段、242 条记录、2420 个数据单元。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon"></span>一、缺失值检查</div>
+  <div class="stat-grid">
+    <div class="stat-card ok">
+      <div class="label">缺失值总数</div>
+      <div class="value">0</div>
+      <div class="sub">/ 2420 单元</div>
+    </div>
+    <div class="stat-card ok">
+      <div class="label">缺失率</div>
+      <div class="value">0.00%</div>
+      <div class="sub">全局缺失率</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">完整字段</div>
+      <div class="value">10/10</div>
+      <div class="sub">无缺失字段数</div>
+    </div>
+    <div class="stat-card ok">
+      <div class="label">重复记录</div>
+      <div class="value">0</div>
+      <div class="sub">重复日期数</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>字段名称</th><th>字段代码</th><th>总记录</th><th>缺失数</th><th>缺失率</th><th>完整度</th><th>状态</th></tr></thead>
+      <tbody>        <tr>
+          <td>日期</td>
+          <td><code>date</code></td>
+          <td>242</td>
+          <td>0</td>
+          <td>0.0%</td>
+          <td><div class="bar-bg"><div class="bar-fill ok" style="width:100.0%"></div></div></td>
+          <td class="ok-text">✅ 无缺失</td>
+        </tr>        <tr>
+          <td>开盘价</td>
+          <td><code>open</code></td>
+          <td>242</td>
+          <td>0</td>
+          <td>0.0%</td>
+          <td><div class="bar-bg"><div class="bar-fill ok" style="width:100.0%"></div></div></td>
+          <td class="ok-text">✅ 无缺失</td>
+        </tr>        <tr>
+          <td>收盘价</td>
+          <td><code>close</code></td>
+          <td>242</td>
+          <td>0</td>
+          <td>0.0%</td>
+          <td><div class="bar-bg"><div class="bar-fill ok" style="width:100.0%"></div></div></td>
+          <td class="ok-text">✅ 无缺失</td>
+        </tr>        <tr>
+          <td>最高价</td>
+          <td><code>high</code></td>
+          <td>242</td>
+          <td>0</td>
+          <td>0.0%</td>
+          <td><div class="bar-bg"><div class="bar-fill ok" style="width:100.0%"></div></div></td>
+          <td class="ok-text">✅ 无缺失</td>
+        </tr>        <tr>
+          <td>最低价</td>
+          <td><code>low</code></td>
+          <td>242</td>
+          <td>0</td>
+          <td>0.0%</td>
+          <td><div class="bar-bg"><div class="bar-fill ok" style="width:100.0%"></div></div></td>
+          <td class="ok-text">✅ 无缺失</td>
+        </tr>        <tr>
+          <td>前收盘价</td>
+          <td><code>pre_close</code></td>
+          <td>242</td>
+          <td>0</td>
+          <td>0.0%</td>
+          <td><div class="bar-bg"><div class="bar-fill ok" style="width:100.0%"></div></div></td>
+          <td class="ok-text">✅ 无缺失</td>
+        </tr>        <tr>
+          <td>涨跌额</td>
+          <td><code>change</code></td>
+          <td>242</td>
+          <td>0</td>
+          <td>0.0%</td>
+          <td><div class="bar-bg"><div class="bar-fill ok" style="width:100.0%"></div></div></td>
+          <td class="ok-text">✅ 无缺失</td>
+        </tr>        <tr>
+          <td>涨跌幅(%)</td>
+          <td><code>pct_chg</code></td>
+          <td>242</td>
+          <td>0</td>
+          <td>0.0%</td>
+          <td><div class="bar-bg"><div class="bar-fill ok" style="width:100.0%"></div></div></td>
+          <td class="ok-text">✅ 无缺失</td>
+        </tr>        <tr>
+          <td>成交量(股)</td>
+          <td><code>volume</code></td>
+          <td>242</td>
+          <td>0</td>
+          <td>0.0%</td>
+          <td><div class="bar-bg"><div class="bar-fill ok" style="width:100.0%"></div></div></td>
+          <td class="ok-text">✅ 无缺失</td>
+        </tr>        <tr>
+          <td>成交额(元)</td>
+          <td><code>amount</code></td>
+          <td>242</td>
+          <td>0</td>
+          <td>0.0%</td>
+          <td><div class="bar-bg"><div class="bar-fill ok" style="width:100.0%"></div></div></td>
+          <td class="ok-text">✅ 无缺失</td>
+        </tr></tbody>
+    </table>
+  </div>
+  <div class="insight">
+    <strong>缺失值分析：</strong> 全部 10 个字段均无缺失值，数据完整度为 100%。 未发现重复日期记录，数据无冗余。 所有数值字段均成功解析为浮点数，无类型错误。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon"></span>二、描述性统计量</div>
+  <div class="chart-box short" id="chart-boxplot" style="margin-bottom:16px"></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>字段</th><th>代码</th><th>计数</th><th>均值</th><th>中位数</th><th>标准差</th><th>最小值</th><th>Q1</th><th>Q3</th><th>最大值</th><th>极差</th><th>变异系数</th><th>偏度</th><th>峰度</th></tr></thead>
+      <tbody>        <tr>
+          <td>开盘价</td>
+          <td><code>open</code></td>
+          <td>242</td>
+          <td>¥233.83</td>
+          <td>¥233.52</td>
+          <td>¥54.82</td>
+          <td>¥135.36</td>
+          <td>¥210.00</td>
+          <td>¥260.50</td>
+          <td>¥368.00</td>
+          <td>¥232.64</td>
+          <td>23.44%</td>
+          <td>+0.0114</td>
+          <td>-0.2324</td>
+        </tr>        <tr>
+          <td>收盘价</td>
+          <td><code>close</code></td>
+          <td>242</td>
+          <td>¥234.11</td>
+          <td>¥234.71</td>
+          <td>¥54.51</td>
+          <td>¥135.11</td>
+          <td>¥210.26</td>
+          <td>¥261.10</td>
+          <td>¥370.30</td>
+          <td>¥235.19</td>
+          <td>23.28%</td>
+          <td>+0.0335</td>
+          <td>-0.1615</td>
+        </tr>        <tr>
+          <td>最高价</td>
+          <td><code>high</code></td>
+          <td>242</td>
+          <td>¥240.88</td>
+          <td>¥240.59</td>
+          <td>¥57.37</td>
+          <td>¥136.10</td>
+          <td>¥215.76</td>
+          <td>¥269.49</td>
+          <td>¥377.88</td>
+          <td>¥241.78</td>
+          <td>23.82%</td>
+          <td>+0.0335</td>
+          <td>-0.2156</td>
+        </tr>        <tr>
+          <td>最低价</td>
+          <td><code>low</code></td>
+          <td>242</td>
+          <td>¥228.40</td>
+          <td>¥227.52</td>
+          <td>¥52.12</td>
+          <td>¥134.83</td>
+          <td>¥205.36</td>
+          <td>¥257.01</td>
+          <td>¥354.24</td>
+          <td>¥219.41</td>
+          <td>22.82%</td>
+          <td>-0.0244</td>
+          <td>-0.2565</td>
+        </tr>        <tr>
+          <td>前收盘价</td>
+          <td><code>pre_close</code></td>
+          <td>242</td>
+          <td>¥233.33</td>
+          <td>¥233.43</td>
+          <td>¥54.55</td>
+          <td>¥135.11</td>
+          <td>¥210.14</td>
+          <td>¥260.00</td>
+          <td>¥370.30</td>
+          <td>¥235.19</td>
+          <td>23.38%</td>
+          <td>+0.0325</td>
+          <td>-0.1589</td>
+        </tr>        <tr>
+          <td>涨跌额</td>
+          <td><code>change</code></td>
+          <td>242</td>
+          <td>¥0.79</td>
+          <td>¥-0.20</td>
+          <td>¥10.26</td>
+          <td>¥-27.61</td>
+          <td>¥-4.84</td>
+          <td>¥5.23</td>
+          <td>¥48.16</td>
+          <td>¥75.77</td>
+          <td>1305.34%</td>
+          <td>+0.7171</td>
+          <td>+2.6063</td>
+        </tr>        <tr>
+          <td>涨跌幅(%)</td>
+          <td><code>pct_chg</code></td>
+          <td>242</td>
+          <td>0.4486%</td>
+          <td>-0.1399%</td>
+          <td>4.2059%</td>
+          <td>-11.1293%</td>
+          <td>-2.1073%</td>
+          <td>2.5235%</td>
+          <td>20.0022%</td>
+          <td>31.1315%</td>
+          <td>937.59%</td>
+          <td>+1.2142</td>
+          <td>+3.9251</td>
+        </tr>        <tr>
+          <td>成交量(股)</td>
+          <td><code>volume</code></td>
+          <td>242</td>
+          <td>3239万股</td>
+          <td>2832万股</td>
+          <td>1632万股</td>
+          <td>723万股</td>
+          <td>1968万股</td>
+          <td>4229万股</td>
+          <td>1.02亿股</td>
+          <td>9497万股</td>
+          <td>50.38%</td>
+          <td>+1.0244</td>
+          <td>+1.0780</td>
+        </tr>        <tr>
+          <td>成交额(元)</td>
+          <td><code>amount</code></td>
+          <td>242</td>
+          <td>78.88亿</td>
+          <td>65.77亿</td>
+          <td>47.17亿</td>
+          <td>9.82亿</td>
+          <td>42.22亿</td>
+          <td>113.82亿</td>
+          <td>215.00亿</td>
+          <td>205.18亿</td>
+          <td>59.80%</td>
+          <td>+0.7895</td>
+          <td>-0.2630</td>
+        </tr></tbody>
+    </table>
+  </div>
+  <div class="analysis" style="margin-top:12px">
+    <p>📌 <span class="highlight">收盘价统计：</span>
+    均值 ¥234.11，中位数 ¥234.71，
+    标准差 ¥54.51，变异系数 23.28%，
+    偏度 +0.0335（右偏，均值 > 中位数，存在高价拉拽），
+    峰度 -0.1615（低峰薄尾）。
+    价格区间 ¥135.11 ~ ¥370.30，极差 ¥235.19。</p>
+    <p>📌 <span class="highlight">涨跌幅统计：</span>
+    均值 +0.4486%，中位数 -0.1399%，
+    标准差 4.2059%，变异系数 937.59%，
+    偏度 +1.2142，峰度 +3.9251。
+    日涨跌幅极差 31.13%，单日最大涨幅 20.00%，最大跌幅 -11.13%。</p>
+    <p>📌 <span class="highlight">成交量统计：</span>
+    均值 3239万股，中位数 2832万股，
+    标准差 1632万股，变异系数 50.38%，
+    成交量波动较大，分布右偏，存在明显放量日。</p>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon"></span>三、数据分布分析</div>
+  <div class="chart-row">
+    <div class="chart-box short" id="chart-hist-close"></div>
+    <div class="chart-box short" id="chart-hist-pct"></div>
+  </div>
+  <div class="chart-box short" id="chart-hist-vol" style="margin-top:16px"></div>
+  <div class="analysis" style="margin-top:12px">
+    <p>📊 <span class="highlight">收盘价分布：</span>
+    呈右偏分布，
+    分布相对对称。
+    众数区间为 135.11~144.52（29 天）。</p>
+    <p>📊 <span class="highlight">涨跌幅分布：</span>
+    近似正态分布，但峰度偏高，尾部较厚，说明极端涨跌日比正态分布更多。
+    中心在 +0.449% 附近，
+    右偏明显，大涨日多于大跌日。</p>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon"></span>四、正态性检验 (Jarque-Bera)</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>字段</th><th>代码</th><th>JB统计量</th><th>p值</th><th>偏度</th><th>偏态描述</th><th>峰度</th><th>峰态描述</th><th>正态性</th></tr></thead>
+      <tbody>        <tr>
+          <td>开盘价</td>
+          <td><code>open</code></td>
+          <td>0.5497</td>
+          <td>0.050</td>
+          <td>+0.0114</td>
+          <td>右偏(正偏)</td>
+          <td>-0.2324</td>
+          <td>低峰(薄尾)</td>
+          <td><span class="badge red">非正态</span></td>
+        </tr>        <tr>
+          <td>收盘价</td>
+          <td><code>close</code></td>
+          <td>0.3082</td>
+          <td>0.050</td>
+          <td>+0.0335</td>
+          <td>右偏(正偏)</td>
+          <td>-0.1615</td>
+          <td>低峰(薄尾)</td>
+          <td><span class="badge red">非正态</span></td>
+        </tr>        <tr>
+          <td>最高价</td>
+          <td><code>high</code></td>
+          <td>0.5138</td>
+          <td>0.050</td>
+          <td>+0.0335</td>
+          <td>右偏(正偏)</td>
+          <td>-0.2156</td>
+          <td>低峰(薄尾)</td>
+          <td><span class="badge red">非正态</span></td>
+        </tr>        <tr>
+          <td>最低价</td>
+          <td><code>low</code></td>
+          <td>0.6875</td>
+          <td>0.050</td>
+          <td>-0.0244</td>
+          <td>左偏(负偏)</td>
+          <td>-0.2565</td>
+          <td>低峰(薄尾)</td>
+          <td><span class="badge red">非正态</span></td>
+        </tr>        <tr>
+          <td>前收盘价</td>
+          <td><code>pre_close</code></td>
+          <td>0.2971</td>
+          <td>0.050</td>
+          <td>+0.0325</td>
+          <td>右偏(正偏)</td>
+          <td>-0.1589</td>
+          <td>低峰(薄尾)</td>
+          <td><span class="badge red">非正态</span></td>
+        </tr>        <tr>
+          <td>涨跌额</td>
+          <td><code>change</code></td>
+          <td>89.2379</td>
+          <td>0.001</td>
+          <td>+0.7171</td>
+          <td>右偏(正偏)</td>
+          <td>+2.6063</td>
+          <td>尖峰(厚尾)</td>
+          <td><span class="badge red">非正态</span></td>
+        </tr>        <tr>
+          <td>涨跌幅(%)</td>
+          <td><code>pct_chg</code></td>
+          <td>214.8094</td>
+          <td>0.001</td>
+          <td>+1.2142</td>
+          <td>右偏(正偏)</td>
+          <td>+3.9251</td>
+          <td>尖峰(厚尾)</td>
+          <td><span class="badge red">非正态</span></td>
+        </tr>        <tr>
+          <td>成交量(股)</td>
+          <td><code>volume</code></td>
+          <td>54.0454</td>
+          <td>0.001</td>
+          <td>+1.0244</td>
+          <td>右偏(正偏)</td>
+          <td>+1.0780</td>
+          <td>尖峰(厚尾)</td>
+          <td><span class="badge red">非正态</span></td>
+        </tr>        <tr>
+          <td>成交额(元)</td>
+          <td><code>amount</code></td>
+          <td>25.8367</td>
+          <td>0.001</td>
+          <td>+0.7895</td>
+          <td>右偏(正偏)</td>
+          <td>-0.2630</td>
+          <td>低峰(薄尾)</td>
+          <td><span class="badge red">非正态</span></td>
+        </tr></tbody>
+    </table>
+  </div>
+  <div class="insight">
+    <strong>正态性检验结论：</strong>
+    在 α=0.05 显著性水平下，0/9 个字段通过正态性检验。
+    涨跌幅等字段不服从正态分布，存在尖峰厚尾特征，这在金融收益率数据中很常见，说明极端波动事件频率高于正态分布预期。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon"></span>五、异常值检测</div>
+  <div class="analysis" style="margin-bottom:12px">
+    <p>采用两种方法并行检测：<span class="highlight">IQR法</span>（四分位距法：超出 [Q1-1.5×IQR, Q3+1.5×IQR] 视为异常）、<span class="highlight">Z-score法</span>（|Z|>3 视为异常）。</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>字段</th><th>代码</th><th>IQR正常范围</th><th>IQR异常数</th><th>Z-score异常数</th><th>IQR异常明细</th><th>Z-score异常明细</th></tr></thead>
+      <tbody>        <tr>
+          <td>开盘价</td>
+          <td><code>open</code></td>
+          <td>[¥134.25, ¥336.25]</td>
+          <td class="warn-text">11 (4.55%)</td>
+          <td class="ok-text">0 (0.0%)</td>
+          <td style="font-size:11px;line-height:1.8">2026-05-07: ¥342.69 (高于上界)<br>2026-05-11: ¥340.50 (高于上界)<br>2026-05-12: ¥343.00 (高于上界)<br>2026-05-14: ¥348.38 (高于上界)<br>2026-05-27: ¥343.00 (高于上界)<br>...等11条</td>
+          <td style="font-size:11px;line-height:1.8">无异常</td>
+        </tr>        <tr>
+          <td>收盘价</td>
+          <td><code>close</code></td>
+          <td>[¥134.00, ¥337.36]</td>
+          <td class="warn-text">11 (4.55%)</td>
+          <td class="ok-text">0 (0.0%)</td>
+          <td style="font-size:11px;line-height:1.8">2026-05-06: ¥344.41 (高于上界)<br>2026-05-07: ¥341.60 (高于上界)<br>2026-05-11: ¥349.18 (高于上界)<br>2026-05-12: ¥349.19 (高于上界)<br>2026-05-13: ¥348.19 (高于上界)<br>...等11条</td>
+          <td style="font-size:11px;line-height:1.8">无异常</td>
+        </tr>        <tr>
+          <td>最高价</td>
+          <td><code>high</code></td>
+          <td>[¥135.16, ¥350.08]</td>
+          <td class="warn-text">9 (3.72%)</td>
+          <td class="ok-text">0 (0.0%)</td>
+          <td style="font-size:11px;line-height:1.8">2026-05-06: ¥355.50 (高于上界)<br>2026-05-12: ¥358.80 (高于上界)<br>2026-05-13: ¥350.33 (高于上界)<br>2026-05-14: ¥353.68 (高于上界)<br>2026-06-25: ¥369.00 (高于上界)<br>...等9条</td>
+          <td style="font-size:11px;line-height:1.8">无异常</td>
+        </tr>        <tr>
+          <td>最低价</td>
+          <td><code>low</code></td>
+          <td>[¥127.89, ¥334.49]</td>
+          <td class="warn-text">6 (2.48%)</td>
+          <td class="ok-text">0 (0.0%)</td>
+          <td style="font-size:11px;line-height:1.8">2026-05-12: ¥338.45 (高于上界)<br>2026-06-25: ¥338.00 (高于上界)<br>2026-06-26: ¥337.93 (高于上界)<br>2026-06-29: ¥339.80 (高于上界)<br>2026-06-30: ¥354.24 (高于上界)<br>...等6条</td>
+          <td style="font-size:11px;line-height:1.8">无异常</td>
+        </tr>        <tr>
+          <td>前收盘价</td>
+          <td><code>pre_close</code></td>
+          <td>[¥135.35, ¥334.79]</td>
+          <td class="warn-text">15 (6.2%)</td>
+          <td class="ok-text">0 (0.0%)</td>
+          <td style="font-size:11px;line-height:1.8">2025-07-11: ¥135.11 (低于下界)<br>2025-07-23: ¥135.34 (低于下界)<br>2025-07-24: ¥135.17 (低于下界)<br>2026-05-07: ¥344.41 (高于上界)<br>2026-05-08: ¥341.60 (高于上界)<br>...等15条</td>
+          <td style="font-size:11px;line-height:1.8">无异常</td>
+        </tr>        <tr>
+          <td>涨跌额</td>
+          <td><code>change</code></td>
+          <td>[¥-19.95, ¥20.34]</td>
+          <td class="warn-text">17 (7.02%)</td>
+          <td class="warn-text">3 (1.24%)</td>
+          <td style="font-size:11px;line-height:1.8">2025-08-22: ¥31.01 (高于上界)<br>2025-08-25: ¥24.04 (高于上界)<br>2025-09-04: ¥-21.70 (低于下界)<br>2025-09-11: ¥36.81 (高于上界)<br>2025-09-22: ¥25.25 (高于上界)<br>...等17条</td>
+          <td style="font-size:11px;line-height:1.8">2025-09-11: ¥36.81 (z=3.51)<br>2026-01-21: ¥33.90 (z=3.226)<br>2026-05-06: ¥48.16 (z=4.616)</td>
+        </tr>        <tr>
+          <td>涨跌幅(%)</td>
+          <td><code>pct_chg</code></td>
+          <td>[-9.0535%, 9.4697%]</td>
+          <td class="warn-text">7 (2.89%)</td>
+          <td class="warn-text">4 (1.65%)</td>
+          <td style="font-size:11px;line-height:1.8">2025-08-22: 20.0000% (高于上界)<br>2025-08-25: 12.9206% (高于上界)<br>2025-09-04: -11.1293% (低于下界)<br>2025-09-11: 20.0022% (高于上界)<br>2025-09-22: 10.7010% (高于上界)<br>...等7条</td>
+          <td style="font-size:11px;line-height:1.8">2025-08-22: 20.0000% (z=4.649)<br>2025-09-11: 20.0022% (z=4.649)<br>2026-01-21: 13.3354% (z=3.064)<br>2026-05-06: 16.2565% (z=3.759)</td>
+        </tr>        <tr>
+          <td>成交量(股)</td>
+          <td><code>volume</code></td>
+          <td>[-1423万股, 7620万股]</td>
+          <td class="warn-text">4 (1.65%)</td>
+          <td class="warn-text">2 (0.83%)</td>
+          <td style="font-size:11px;line-height:1.8">2025-08-14: 7890万股 (高于上界)<br>2025-08-25: 1.02亿股 (高于上界)<br>2025-09-11: 7758万股 (高于上界)<br>2025-09-12: 8150万股 (高于上界)</td>
+          <td style="font-size:11px;line-height:1.8">2025-08-25: 1.02亿股 (z=4.277)<br>2025-09-12: 8150万股 (z=3.009)</td>
+        </tr>        <tr>
+          <td>成交额(元)</td>
+          <td><code>amount</code></td>
+          <td>[-65.19亿, 221.23亿]</td>
+          <td class="ok-text">0 (0.0%)</td>
+          <td class="ok-text">0 (0.0%)</td>
+          <td style="font-size:11px;line-height:1.8">无异常</td>
+          <td style="font-size:11px;line-height:1.8">无异常</td>
+        </tr></tbody>
+    </table>
+  </div>
+  <div class="insight">
+    <strong>异常值解读：</strong>
+    收盘价 IQR 异常值 11 个，均为高位区域（超过 ¥337.36），对应 2026 年 5-6 月的强势上涨阶段，属趋势性突破而非数据错误。
+    成交量异常值 4 个（1.65%），对应重大消息日或情绪高潮日的放量，为正常市场行为。
+    <strong>结论：未发现数据质量层面的异常值，所有"异常"均为真实市场波动。</strong>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon"></span>六、相关性分析</div>
+  <div class="chart-box" id="chart-corr"></div>
+  <div class="analysis" style="margin-top:12px">
+    <p>🔗 <span class="highlight">高相关字段对：</span></p>
+    <p>• 开盘价/收盘价/最高价/最低价/前收盘价之间相关系数接近 1.0，属完全正相关（价格序列同趋势波动）</p>
+    <p>• 成交量与成交额相关系数 0.8961（极高正相关，量价同向）</p>
+    <p>• 涨跌幅与成交量相关系数 0.3859（正相关：涨时放量）</p>
+    <p>• 收盘价与涨跌幅相关系数 0.0686（正相关，价格水平与当日涨跌幅度关系）</p>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon"></span>七、数据一致性检查</div>
+  <div class="stat-grid">
+    <div class="stat-card ok"><div class="label">逻辑矛盾</div><div class="value">0</div><div class="sub">一致性异常</div></div>
+    <div class="stat-card ok"><div class="label">重复日期</div><div class="value">0</div><div class="sub">重复记录</div></div>
+    <div class="stat-card warn"><div class="label">日期间隔异常</div><div class="value">2</div><div class="sub">>7天的间隔</div></div>
+    <div class="stat-card ok"><div class="label">解析错误</div><div class="value">0</div><div class="sub">类型转换失败</div></div>
+  </div>
+  <h4 style="margin:16px 0 8px;color:#00695c">7.1 逻辑一致性</h4>
+  <div class="table-wrap">
+    <table><thead><tr><th>日期</th><th>检查规则</th><th>详情</th><th>状态</th></tr></thead><tbody><tr><td colspan="4" class="ok-text" style="padding:20px">✅ 所有数据一致性检查通过，未发现逻辑矛盾</td></tr></tbody></table>
+  </div>
+  <h4 style="margin:16px 0 8px;color:#00695c">7.2 日期连续性</h4>
+  <div class="table-wrap">
+    <table><thead><tr><th>间隔区间</th><th>间隔天数</th><th>状态</th></tr></thead><tbody>        <tr>
+          <td>2025-09-30 → 2025-10-09</td>
+          <td>9 天</td>
+          <td><span class="badge yellow">节假日</span></td>
+        </tr>        <tr>
+          <td>2026-02-13 → 2026-02-24</td>
+          <td>11 天</td>
+          <td><span class="badge yellow">节假日</span></td>
+        </tr></tbody></table>
+  </div>
+  <div class="insight">
+    <strong>一致性检查结论：</strong>
+    ✅ 所有逻辑规则检查通过：最高价 ≥ max(开盘,收盘)，最低价 ≤ min(开盘,收盘)，收盘价 = 前收盘 + 涨跌额，涨跌幅计算无误。
+    ✅ 无重复日期记录。
+    发现 2 处日期间隔超过7天，可能为节假日或数据缺失。
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title"><span class="icon"></span>八、诊断结论与建议</div>
+  <div class="analysis">
+    <h3 style="color:#00695c;margin-bottom:10px">📋 诊断总结</h3>
+    <table style="width:100%;font-size:13px">
+      <tr style="background:#e0f2f1"><th style="padding:8px;text-align:left">检查项</th><th style="padding:8px;text-align:center">结果</th><th style="padding:8px;text-align:left">说明</th></tr>
+      <tr><td style="padding:8px">数据完整性</td><td style="padding:8px;text-align:center">✅ 通过</td><td style="padding:8px">全部字段无缺失，完整度100%</td></tr>
+      <tr><td style="padding:8px">数据类型</td><td style="padding:8px;text-align:center">✅ 通过</td><td style="padding:8px">所有数值字段成功解析为浮点型，日期字段格式正确</td></tr>
+      <tr><td style="padding:8px">逻辑一致性</td><td style="padding:8px;text-align:center">✅ 通过</td><td style="padding:8px">价格关系、涨跌额/幅计算全部正确</td></tr>
+      <tr><td style="padding:8px">唯一性</td><td style="padding:8px;text-align:center">✅ 通过</td><td style="padding:8px">无重复日期记录</td></tr>
+      <tr><td style="padding:8px">时间连续性</td><td style="padding:8px;text-align:center">⚠️ 有间隔</td><td style="padding:8px">2处间隔>7天</td></tr>
+      <tr><td style="padding:8px">异常值</td><td style="padding:8px;text-align:center">ℹ️ 存在</td><td style="padding:8px">IQR/Z-score异常值均为真实市场波动，非数据错误</td></tr>
+      <tr><td style="padding:8px">分布特征</td><td style="padding:8px;text-align:center">ℹ️ 非正态</td><td style="padding:8px">收益率序列呈尖峰厚尾分布，符合金融数据特征</td></tr>
+    </table>
+    <h3 style="color:#00695c;margin:16px 0 10px">💡 建议</h3>
+    <p>1. <span class="highlight">数据质量优秀，可直接用于后续分析。</span>无需缺失值填充或数据清洗。</p>
+    <p>2. 收益率序列不服从正态分布（尖峰厚尾），在进行统计推断时建议使用稳健统计方法或非参数检验。</p>
+    <p>3. 异常值均为真实市场行为（涨停/放量大涨），不建议剔除，但可在建模时考虑对数变换降低偏度。</p>
+    <p>4. 价格类字段高度相关（>0.95），建模时注意多重共线性，建议使用PCA降维或选择代表性字段。</p>
+    <p>5. 成交量变异系数较高（50.4%），建议在时间序列分析中对成交量取对数处理。</p>
+  </div>
+</div>
+
+<div class="footer">
+  <p>海光信息 (688041.SH) 数据诊断分析报告 | 数据来源：Tushare | 报告日期：2026-07-04</p>
+  <p>本报告由自动化诊断工具生成，仅供学习参考</p>
+</div>
+
+</div>
+
+
+<script>
+var teal = '#00695c';
+
+// 1. 箱线图
+var chartBox = echarts.init(document.getElementById('chart-boxplot'));
+chartBox.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '各字段箱线图（对数轴）', left: 'center', textStyle: { fontSize: 14, color: teal } },
+  tooltip: { trigger: 'item' },
+  grid: { left: 60, right: 30, top: 50, bottom: 30 },
+  xAxis: { type: 'category', data: [{"name": "open", "value": [135.36, 210.0, 233.525, 260.5, 368.0]}, {"name": "close", "value": [135.11, 210.26, 234.71, 261.1, 370.3]}, {"name": "high", "value": [136.1, 215.76, 240.595, 269.49, 377.88]}, {"name": "low", "value": [134.83, 205.36, 227.52, 257.01, 354.24]}, {"name": "pre_close", "value": [135.11, 210.14, 233.43, 260.0, 370.3]}, {"name": "change", "value": [-27.61, -4.84, -0.195, 5.23, 48.16]}, {"name": "pct_chg", "value": [-11.1293, -2.1073, -0.1399, 2.5235, 20.0022]}, {"name": "volume", "value": [7232237.0, 19683734.0, 28317243.0, 42291562.0, 102204424.0]}, {"name": "amount", "value": [981568198.0, 4222041361.0, 6577050235.0, 11382464120.0, 21499719228.0]}].map(function(d){return d.name;}), axisLabel: { fontSize: 11 } },
+  yAxis: { type: 'log', name: '值(对数轴)' },
+  series: [{
+    type: 'boxplot',
+    data: [{"name": "open", "value": [135.36, 210.0, 233.525, 260.5, 368.0]}, {"name": "close", "value": [135.11, 210.26, 234.71, 261.1, 370.3]}, {"name": "high", "value": [136.1, 215.76, 240.595, 269.49, 377.88]}, {"name": "low", "value": [134.83, 205.36, 227.52, 257.01, 354.24]}, {"name": "pre_close", "value": [135.11, 210.14, 233.43, 260.0, 370.3]}, {"name": "change", "value": [-27.61, -4.84, -0.195, 5.23, 48.16]}, {"name": "pct_chg", "value": [-11.1293, -2.1073, -0.1399, 2.5235, 20.0022]}, {"name": "volume", "value": [7232237.0, 19683734.0, 28317243.0, 42291562.0, 102204424.0]}, {"name": "amount", "value": [981568198.0, 4222041361.0, 6577050235.0, 11382464120.0, 21499719228.0]}].map(function(d){return d.value;}),
+    itemStyle: { color: 'rgba(38,166,154,0.3)', borderColor: teal }
+  }]
+});
+
+// 2. 收盘价直方图
+var chartHistClose = echarts.init(document.getElementById('chart-hist-close'));
+chartHistClose.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '收盘价分布直方图', left: 'center', textStyle: { fontSize: 13, color: teal } },
+  tooltip: { trigger: 'axis' },
+  grid: { left: 50, right: 20, top: 40, bottom: 40 },
+  xAxis: { type: 'category', data: ["135.11~144.52", "144.52~153.93", "153.93~163.33", "163.33~172.74", "172.74~182.15", "182.15~191.56", "191.56~200.96", "200.96~210.37", "210.37~219.78", "219.78~229.19", "229.19~238.59", "238.59~248.00", "248.00~257.41", "257.41~266.82", "266.82~276.22", "276.22~285.63", "285.63~295.04", "295.04~304.45", "304.45~313.85", "313.85~323.26", "323.26~332.67", "332.67~342.08", "342.08~351.48", "351.48~360.89", "360.89~370.30"], axisLabel: { fontSize: 8, rotate: 45, interval: 1 } },
+  yAxis: { type: 'value', name: '频次' },
+  series: [{
+    type: 'bar', data: [29, 4, 2, 0, 4, 2, 5, 15, 27, 26, 16, 24, 19, 16, 8, 5, 8, 5, 4, 5, 6, 3, 6, 2, 1],
+    itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset:0,color:'#26a69a'},{offset:1,color:'#80cbc4'}]), borderRadius: [3,3,0,0] },
+    barWidth: '80%'
+  }]
+});
+
+// 3. 涨跌幅直方图
+var chartHistPct = echarts.init(document.getElementById('chart-hist-pct'));
+chartHistPct.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '涨跌幅分布直方图', left: 'center', textStyle: { fontSize: 13, color: teal } },
+  tooltip: { trigger: 'axis' },
+  grid: { left: 50, right: 20, top: 40, bottom: 40 },
+  xAxis: { type: 'category', data: ["-11.13~-9.88", "-9.88~-8.64", "-8.64~-7.39", "-7.39~-6.15", "-6.15~-4.90", "-4.90~-3.66", "-3.66~-2.41", "-2.41~-1.17", "-1.17~0.08", "0.08~1.32", "1.32~2.57", "2.57~3.81", "3.81~5.06", "5.06~6.30", "6.30~7.55", "7.55~8.79", "8.79~10.04", "10.04~11.29", "11.29~12.53", "12.53~13.78", "13.78~15.02", "15.02~16.27", "16.27~17.51", "17.51~18.76", "18.76~20.00"], axisLabel: { fontSize: 8, rotate: 45, interval: 1 } },
+  yAxis: { type: 'value', name: '频次' },
+  series: [{
+    type: 'bar',
+    data: [1, 0, 2, 7, 5, 11, 29, 23, 49, 37, 18, 22, 10, 10, 7, 4, 1, 1, 0, 2, 0, 1, 0, 0, 2].map(function(v, i) {
+      var labels = ["-11.13~-9.88", "-9.88~-8.64", "-8.64~-7.39", "-7.39~-6.15", "-6.15~-4.90", "-4.90~-3.66", "-3.66~-2.41", "-2.41~-1.17", "-1.17~0.08", "0.08~1.32", "1.32~2.57", "2.57~3.81", "3.81~5.06", "5.06~6.30", "6.30~7.55", "7.55~8.79", "8.79~10.04", "10.04~11.29", "11.29~12.53", "12.53~13.78", "13.78~15.02", "15.02~16.27", "16.27~17.51", "17.51~18.76", "18.76~20.00"];
+      var lo = parseFloat(labels[i].split('~')[0]);
+      var hi = parseFloat(labels[i].split('~')[1]);
+      var mid = (lo + hi) / 2;
+      return { value: v, itemStyle: { color: mid >= 0 ? '#e74c3c' : '#27ae60', borderRadius: [3,3,0,0] } };
+    }),
+    barWidth: '80%'
+  }]
+});
+
+// 4. 成交量直方图
+var chartHistVol = echarts.init(document.getElementById('chart-hist-vol'));
+chartHistVol.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '成交量分布直方图（万股）', left: 'center', textStyle: { fontSize: 13, color: teal } },
+  tooltip: { trigger: 'axis' },
+  grid: { left: 60, right: 30, top: 40, bottom: 50 },
+  xAxis: { type: 'category', data: ["723.22~1103.11", "1103.11~1483.00", "1483.00~1862.89", "1862.89~2242.78", "2242.78~2622.67", "2622.67~3002.56", "3002.56~3382.44", "3382.44~3762.33", "3762.33~4142.22", "4142.22~4522.11", "4522.11~4902.00", "4902.00~5281.89", "5281.89~5661.78", "5661.78~6041.67", "6041.67~6421.55", "6421.55~6801.44", "6801.44~7181.33", "7181.33~7561.22", "7561.22~7941.11", "7941.11~8321.00", "8321.00~8700.89", "8700.89~9080.78", "9080.78~9460.66", "9460.66~9840.55", "9840.55~10220.44"], axisLabel: { fontSize: 8, rotate: 45, interval: 1 } },
+  yAxis: { type: 'value', name: '频次' },
+  series: [{
+    type: 'bar', data: [5, 18, 31, 33, 23, 17, 15, 19, 15, 15, 15, 10, 7, 2, 4, 5, 1, 2, 3, 1, 0, 0, 0, 0, 1],
+    itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset:0,color:'#7e57c2'},{offset:1,color:'#b39ddb'}]), borderRadius: [3,3,0,0] },
+    barWidth: '80%'
+  }]
+});
+
+// 5. 相关性热力图
+var chartCorr = echarts.init(document.getElementById('chart-corr'));
+var corrFields = ["open", "close", "high", "low", "pre_close", "change", "pct_chg", "volume", "amount"];
+var corrData = [];
+var fullCorr = [[1.0, 0.9826, 0.9883, 0.9917, 0.9915, -0.0518, -0.0697, 0.2922, 0.6408], [0.9826, 1.0, 0.9915, 0.99, 0.9782, 0.0892, 0.0686, 0.3349, 0.677], [0.9883, 0.9915, 1.0, 0.9902, 0.9826, 0.0428, 0.0281, 0.3574, 0.695], [0.9917, 0.99, 0.9902, 1.0, 0.9878, 0.0071, -0.0155, 0.2853, 0.6376], [0.9915, 0.9782, 0.9826, 0.9878, 1.0, -0.0982, -0.1135, 0.272, 0.6205], [-0.0518, 0.0892, 0.0428, 0.0071, -0.0982, 1.0, 0.9673, 0.3327, 0.2971], [-0.0697, 0.0686, 0.0281, -0.0155, -0.1135, 0.9673, 1.0, 0.3859, 0.3167], [0.2922, 0.3349, 0.3574, 0.2853, 0.272, 0.3327, 0.3859, 1.0, 0.8961], [0.6408, 0.677, 0.695, 0.6376, 0.6205, 0.2971, 0.3167, 0.8961, 1.0]];
+for (var i = 0; i < corrFields.length; i++) {
+  for (var j = 0; j < corrFields.length; j++) {
+    corrData.push([j, i, fullCorr[i][j]]);
+  }
+}
+chartCorr.setOption({
+  backgroundColor: 'transparent',
+  title: { text: '字段间相关性热力图 (Pearson)', left: 'center', textStyle: { fontSize: 14, color: teal } },
+  tooltip: {
+    position: 'top',
+    formatter: function(p) {
+      return corrFields[p.data[1]] + ' vs ' + corrFields[p.data[0]] + '<br/>相关系数: ' + p.data[2].toFixed(4);
+    }
+  },
+  grid: { left: 80, right: 30, top: 50, bottom: 80 },
+  xAxis: { type: 'category', data: corrFields, axisLabel: { fontSize: 11, rotate: 45 } },
+  yAxis: { type: 'category', data: corrFields, axisLabel: { fontSize: 11 } },
+  visualMap: {
+    min: -1, max: 1, calculable: true, orient: 'horizontal',
+    left: 'center', bottom: 10,
+    inRange: { color: ['#27ae60', '#fff59d', '#e74c3c'] }
+  },
+  series: [{
+    type: 'heatmap', data: corrData,
+    label: { show: true, formatter: function(p) { return p.data[2].toFixed(2); }, fontSize: 9 },
+    emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' } }
+  }]
+});
+
+// 响应式
+window.addEventListener('resize', function() {
+  [chartBox, chartHistClose, chartHistPct, chartHistVol, chartCorr].forEach(function(c) { c.resize(); });
+});
+</script>
+</body>
+</html>
