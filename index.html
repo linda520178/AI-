@@ -162,11 +162,11 @@
 <!-- Hero -->
 <div class="hero">
   <h1>AI 金融数据分析</h1>
-  <p>基于 Tushare 数据源的 A 股个股多维可视化分析平台，涵盖 K 线图、收盘价曲线、成交量分析及综合数据报告</p>
+  <p>基于 Tushare 数据源的 A 股个股多维可视化分析平台，涵盖 K 线图、技术指标、均线策略回测、Donchian 通道+ATR 策略回测</p>
   <div class="meta">
     <span>📊 数据源：Tushare</span>
     <span>📈 可视化：ECharts</span>
-    <span>🔄 更新日期：2026-07-04</span>
+    <span>🔄 更新日期：2026-07-11</span>
   </div>
 </div>
 
@@ -238,6 +238,47 @@
       <div class="footer">
         <span>CSV · 242 行</span>
         <span class="arrow">↓</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- 策略回测 -->
+  <div class="section-title"><span class="dot"></span>策略回测报告</div>
+  <div class="card-grid" style="margin-top:16px">
+    <a class="card" href="宁德时代_300750_Donchian通道ATR策略回测.html">
+      <span class="tag report">Donchian+ATR</span>
+      <h3>宁德时代 Donchian通道+ATR策略回测</h3>
+      <p>20日高低价格通道、ATR波动率、买卖信号标记、净值曲线、回撤曲线、完整交易明细</p>
+      <div class="footer">
+        <span>策略收益 +30.67% · 胜率100%</span>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+    <a class="card" href="宁德时代_300750_多周期回测_完整版.html">
+      <span class="tag report">多周期回测</span>
+      <h3>宁德时代 双均线多周期回测（完整版）</h3>
+      <p>MA5/15、MA10/30、MA20/60 三组周期对比，含净值曲线、交易明细、跨股票对比分析</p>
+      <div class="footer">
+        <span>最佳MA10/30 +25.04%</span>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+    <a class="card" href="海光信息_688041_多周期回测.html">
+      <span class="tag report">多周期回测</span>
+      <h3>海光信息 双均线多周期回测</h3>
+      <p>MA5/15、MA10/30、MA20/60 三组周期对比，含净值曲线、交易明细、策略总结</p>
+      <div class="footer">
+        <span>最佳MA5/15 +49.71%</span>
+        <span class="arrow">→</span>
+      </div>
+    </a>
+    <a class="card" href="海光信息_688041_均线策略回测.html">
+      <span class="tag report">均线策略</span>
+      <h3>海光信息 双均线策略回测</h3>
+      <p>MA5/MA20 金叉死叉策略，含价格走势+均线+信号、净值曲线、回撤曲线</p>
+      <div class="footer">
+        <span>含技术指标分析</span>
+        <span class="arrow">→</span>
       </div>
     </a>
   </div>
