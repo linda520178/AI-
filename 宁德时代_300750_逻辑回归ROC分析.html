@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宁德时代（300750）逻辑回归分类模型 | ROC曲线分析</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  line-height: 1.6;
+}
+.header {
+  background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+  color: white;
+  padding: 40px 20px 30px;
+  text-align: center;
+}
+.header h1 { font-size: 28px; margin-bottom: 8px; }
+.header .subtitle { font-size: 14px; opacity: 0.85; }
+.header .meta-info {
+  display: flex; justify-content: center; gap: 30px; margin-top: 16px;
+  font-size: 13px; opacity: 0.9;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+/* 指标卡片 */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+.metric-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-top: 3px solid #3949ab;
+  transition: transform 0.2s;
+}
+.metric-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+.metric-card .label { font-size: 13px; color: #888; margin-bottom: 6px; }
+.metric-card .value { font-size: 28px; font-weight: 700; color: #1a237e; }
+.metric-card .value.green { color: #2e7d32; }
+.metric-card .value.red { color: #c62828; }
+.metric-card .value.blue { color: #1565c0; }
+.metric-card .desc { font-size: 11px; color: #aaa; margin-top: 4px; }
+
+/* 卡片块 */
+.section {
+  background: white;
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.section h2 {
+  font-size: 18px;
+  color: #1a237e;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e8eaf6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section h2 .icon { font-size: 22px; }
+
+.chart-box { width: 100%; height: 400px; }
+.chart-box.tall { height: 450px; }
+
+/* 数据划分表 */
+.split-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.split-table th {
+  background: #e8eaf6;
+  color: #1a237e;
+  padding: 10px 16px;
+  text-align: left;
+  font-weight: 600;
+}
+.split-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #eee;
+}
+.split-table tr:hover td { background: #f5f5fa; }
+
+/* 混淆矩阵 */
+.cm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  max-width: 320px;
+  margin: 0 auto;
+  gap: 4px;
+}
+.cm-cell {
+  padding: 30px 20px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 24px;
+  font-weight: 700;
+}
+.cm-cell .cm-label { font-size: 13px; font-weight: 400; margin-top: 6px; opacity: 0.8; }
+.cm-tp { background: #e8f5e9; color: #2e7d32; }
+.cm-fp { background: #ffebee; color: #c62828; }
+.cm-fn { background: #fff3e0; color: #e65100; }
+.cm-tn { background: #e8eaf6; color: #283593; }
+.cm-axes { text-align: center; font-size: 13px; color: #888; margin-top: 10px; }
+
+/* 特征列表 */
+.feat-desc {
+  font-size: 13px; color: #666; margin-bottom: 12px;
+}
+.feat-desc code {
+  background: #f5f5f5; padding: 2px 6px; border-radius: 4px;
+  color: #c62828; font-family: "SF Mono", "Fira Code", monospace;
+}
+
+.footer {
+  text-align: center; padding: 30px 20px;
+  color: #999; font-size: 12px;
+}
+.footer a { color: #3949ab; text-decoration: none; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 768px) {
+  .two-col { grid-template-columns: 1fr; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>宁德时代（300750.SZ）逻辑回归分类模型</h1>
+  <div class="subtitle">基于技术指标特征预测次日股价涨跌方向 · ROC曲线分析</div>
+  <div class="meta-info">
+    <span>📅 数据周期：2025-07-07 ~ 2026-07-06</span>
+    <span>📊 样本数：221 条</span>
+    <span>🔧 特征数：17 个</span>
+    <span>⚙️ 模型：Logistic Regression</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 核心指标 -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="label">Accuracy 准确率</div>
+      <div class="value blue" id="m-acc">40.00%</div>
+      <div class="desc">预测正确比例</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Precision 精确率</div>
+      <div class="value green" id="m-prec">37.84%</div>
+      <div class="desc">预测上涨的正确率</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Recall 召回率</div>
+      <div class="value green" id="m-rec">77.78%</div>
+      <div class="desc">实际上涨中被识别的比例</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">F1-Score</div>
+      <div class="value blue" id="m-f1">0.5091</div>
+      <div class="desc">精确率与召回率的调和均值</div>
+    </div>
+    <div class="metric-card" style="border-top-color: #c62828;">
+      <div class="label">AUC</div>
+      <div class="value red" id="m-auc">0.5720</div>
+      <div class="desc">ROC曲线下面积</div>
+    </div>
+  </div>
+
+  <!-- 数据划分 -->
+  <div class="section">
+    <h2><span class="icon">📋</span> 数据划分与标签分布</h2>
+    <table class="split-table">
+      <thead>
+        <tr>
+          <th>数据集</th>
+          <th>样本数</th>
+          <th>上涨（标签=1）</th>
+          <th>下跌（标签=0）</th>
+          <th>上涨占比</th>
+          <th>日期范围</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>训练集</strong></td>
+          <td>176</td>
+          <td style="color:#c62828;">88</td>
+          <td style="color:#2e7d32;">88</td>
+          <td>50.0%</td>
+          <td>2025-08-04 ~ 2026-04-27</td>
+        </tr>
+        <tr>
+          <td><strong>测试集</strong></td>
+          <td>45</td>
+          <td style="color:#c62828;">18</td>
+          <td style="color:#2e7d32;">27</td>
+          <td>40.0%</td>
+          <td>2026-04-28 ~ 2026-07-03</td>
+        </tr>
+        <tr style="background:#f5f5fa; font-weight:bold;">
+          <td>合计</td>
+          <td>221</td>
+          <td style="color:#c62828;">106</td>
+          <td style="color:#2e7d32;">115</td>
+          <td>48.0%</td>
+          <td>-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ROC曲线 -->
+  <div class="section">
+    <h2><span class="icon">📈</span> ROC 曲线（Receiver Operating Characteristic）</h2>
+    <div class="feat-desc">
+      ROC曲线横轴为 <code>FPR（假阳性率）</code>，纵轴为 <code>TPR（真阳性率/召回率）</code>。
+      对角线代表随机分类器（AUC=0.5），曲线越靠近左上角，模型性能越好。
+    </div>
+    <div id="rocChart" class="chart-box tall"></div>
+  </div>
+
+  <!-- 特征重要性 + 混淆矩阵 -->
+  <div class="two-col">
+    <div class="section">
+      <h2><span class="icon">🔬</span> 特征重要性（模型系数）</h2>
+      <div class="feat-desc">
+        逻辑回归系数绝对值越大，该特征对分类结果的影响越大。<code>正值</code>表示推动预测为上涨，<code>负值</code>表示推动预测为下跌。
+      </div>
+      <div id="featChart" class="chart-box tall"></div>
+    </div>
+    <div class="section">
+      <h2><span class="icon">🎯</span> 混淆矩阵</h2>
+      <div class="feat-desc">测试集预测结果分布</div>
+      <div class="cm-grid">
+        <div class="cm-cell cm-tp">
+          <div id="cm-tp">14</div>
+          <div class="cm-label">TP 真阳性<br>预测涨，实际涨</div>
+        </div>
+        <div class="cm-cell cm-fp">
+          <div id="cm-fp">23</div>
+          <div class="cm-label">FP 假阳性<br>预测涨，实际跌</div>
+        </div>
+        <div class="cm-cell cm-fn">
+          <div id="cm-fn">4</div>
+          <div class="cm-label">FN 假阴性<br>预测跌，实际涨</div>
+        </div>
+        <div class="cm-cell cm-tn">
+          <div id="cm-tn">4</div>
+          <div class="cm-label">TN 真阴性<br>预测跌，实际跌</div>
+        </div>
+      </div>
+      <div class="cm-axes">← 实际下跌 ↑ / 实际上涨 ↓ →</div>
+    </div>
+  </div>
+
+  <!-- 预测概率分布 -->
+  <div class="section">
+    <h2><span class="icon">📊</span> 测试集预测概率分布</h2>
+    <div class="feat-desc">
+      模型对每个测试样本输出上涨概率（0~1）。<code>红色</code>点为实际上涨日，<code>绿色</code>点为实际下跌日。
+      阈值默认0.5，概率≥0.5预测为上涨。
+    </div>
+    <div id="probaChart" class="chart-box tall"></div>
+  </div>
+
+  <!-- 模型说明 -->
+  <div class="section">
+    <h2><span class="icon">📝</span> 模型说明与结论</h2>
+    <div style="font-size:14px; line-height:1.8; color:#555;">
+      <p style="margin-bottom:10px;"><strong>1. 任务定义：</strong>以宁德时代（300750.SZ）近一年241个交易日数据为基准，构建17维技术指标特征，预测次日股价涨跌方向（上涨=1，下跌=0），这是一个典型的二分类问题。</p>
+      <p style="margin-bottom:10px;"><strong>2. 特征工程：</strong>从原始OHLCV数据构建了以下技术指标特征：</p>
+      <ul style="margin-left:20px; margin-bottom:10px;">
+        <li>均线距离比（MA5/MA10/MA20 距收盘价的百分比偏差）</li>
+        <li>动量指标（5日/10日收益率）</li>
+        <li>波动率（5日/10日标准差归一化）</li>
+        <li>RSI（14日相对强弱指标，归一化至0~1）</li>
+        <li>量价关系（成交量比、成交额变化率、换手加速）</li>
+        <li>ATR（14日平均真实波幅，归一化）</li>
+        <li>均线交叉信号（MA5与MA10/MA20的差值比）</li>
+        <li>布林带位置（收盘价在±2σ带中的相对位置）</li>
+        <li>日内振幅（(最高-最低)/收盘）</li>
+      </ul>
+      <p style="margin-bottom:10px;"><strong>3. 数据划分：</strong>按时间顺序划分，前80%（约176天）为训练集，后20%（约45天）为测试集，避免未来数据泄露。特征经过 <code>StandardScaler</code> 标准化处理。</p>
+      <p style="margin-bottom:10px;"><strong>4. 模型评估：</strong>AUC = <strong>0.5720</strong>，准确率 = <strong>40.00%</strong>。AUC越接近1.0表示模型判别能力越强，0.5表示无判别能力。当AUC > 0.7时可认为模型有一定预测价值，但股价预测受市场噪声影响较大，实际应用中AUC通常在0.55~0.70之间。</p>
+      <p style="margin-bottom:10px;"><strong>5. 局限性：</strong>逻辑回归是线性模型，无法捕捉非线性特征交互；股票市场受宏观经济、政策、情绪等多维因素影响，仅用技术指标预测存在信息维度不足的问题。本模型仅用于学习目的，不构成投资建议。</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>宁德时代逻辑回归分类模型 · 数据来源 <a href="https://tushare.pro" target="_blank">Tushare</a> · 可视化 <a href="https://echarts.apache.org" target="_blank">Apache ECharts</a></p>
+  <p style="margin-top:6px">本页面仅供学习交流，不构成投资建议</p>
+</div>
+
+<script>
+var data = {"roc_fpr": [0.0, 0.037037037037037035, 0.07407407407407407, 0.07407407407407407, 0.14814814814814814, 0.14814814814814814, 0.18518518518518517, 0.18518518518518517, 0.25925925925925924, 0.25925925925925924, 0.2962962962962963, 0.2962962962962963, 0.5555555555555556, 0.5555555555555556, 0.5925925925925926, 0.5925925925925926, 0.8518518518518519, 0.8518518518518519, 0.8888888888888888, 0.8888888888888888, 1.0], "roc_tpr": [0.0, 0.0, 0.0, 0.05555555555555555, 0.05555555555555555, 0.16666666666666666, 0.16666666666666666, 0.2222222222222222, 0.2222222222222222, 0.3888888888888889, 0.3888888888888889, 0.6111111111111112, 0.6111111111111112, 0.6666666666666666, 0.6666666666666666, 0.7777777777777778, 0.7777777777777778, 0.9444444444444444, 0.9444444444444444, 1.0, 1.0], "auc": 0.572, "feat_names": ["5日动量", "ATR_14", "MA20距比", "成交额变化率", "MA10距比", "RSI_14", "成交量比", "5日波动率", "MA5距比", "MA5_MA10差", "10日动量", "布林带位置", "MA5_MA20差", "换手加速", "10日波动率", "ATR距比", "日内振幅"], "feat_coefs": [0.7947, 0.476, -0.2728, -0.2512, -0.236, -0.2059, -0.1839, -0.1639, -0.1594, -0.1409, 0.1387, 0.1334, -0.1168, 0.0775, -0.068, -0.0248, 0.0124], "cm": {"tp": 14, "fp": 23, "tn": 4, "fn": 4}, "metrics": {"accuracy": 0.4, "precision": 0.3784, "recall": 0.7778, "f1": 0.5091, "auc": 0.572}, "test_proba": [0.4979, 0.5413, 0.5586, 0.3367, 0.5537, 0.6862, 0.5821, 0.6529, 0.4467, 0.5026, 0.6247, 0.5546, 0.6828, 0.5864, 0.5609, 0.6557, 0.579, 0.62, 0.4803, 0.6485, 0.5452, 0.6899, 0.7069, 0.5784, 0.5584, 0.5442, 0.5549, 0.4646, 0.545, 0.6144, 0.4624, 0.621, 0.5268, 0.7213, 0.7371, 0.4345, 0.6357, 0.6239, 0.6656, 0.6697, 0.4949, 0.7418, 0.5981, 0.6041, 0.8052], "test_labels": [1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0], "test_dates": ["20260428", "20260429", "20260430", "20260506", "20260507", "20260508", "20260511", "20260512", "20260513", "20260514", "20260515", "20260518", "20260519", "20260520", "20260521", "20260522", "20260525", "20260526", "20260527", "20260528", "20260529", "20260601", "20260602", "20260603", "20260604", "20260605", "20260608", "20260609", "20260610", "20260611", "20260612", "20260615", "20260616", "20260617", "20260618", "20260622", "20260623", "20260624", "20260625", "20260626", "20260629", "20260630", "20260701", "20260702", "20260703"], "train_size": 176, "test_size": 45, "train_dates_range": "20250804 ~ 20260427", "test_dates_range": "20260428 ~ 20260703", "up_train": 88, "down_train": 88, "up_test": 18, "down_test": 27, "total_up": 106, "total_down": 115, "total": 221, "feature_count": 17};
+
+// ========== ROC曲线 ==========
+var rocChart = echarts.init(document.getElementById('rocChart'));
+rocChart.setOption({
+  title: { text: 'ROC 曲线', left: 'center', textStyle: { fontSize: 16 } },
+  tooltip: {
+    trigger: 'axis',
+    formatter: function(params) {
+      var p = params[0];
+      return 'FPR: ' + p.data[0].toFixed(4) + '<br/>TPR: ' + p.data[1].toFixed(4);
+    }
+  },
+  legend: { data: ['ROC曲线 (AUC=' + data.auc + ')', '随机分类器 (AUC=0.5)'], bottom: 5 },
+  grid: { left: '8%', right: '5%', top: '12%', bottom: '18%' },
+  xAxis: { name: 'FPR (假阳性率)', min: 0, max: 1, splitNumber: 10 },
+  yAxis: { name: 'TPR (真阳性率)', min: 0, max: 1, splitNumber: 10 },
+  series: [
+    {
+      name: 'ROC曲线 (AUC=' + data.auc + ')',
+      type: 'line',
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 5,
+      data: data.roc_fpr.map(function(f, i) { return [f, data.roc_tpr[i]]; }),
+      lineStyle: { width: 3, color: '#c62828' },
+      itemStyle: { color: '#c62828' },
+      areaStyle: { color: 'rgba(198,40,40,0.08)' }
+    },
+    {
+      name: '随机分类器 (AUC=0.5)',
+      type: 'line',
+      data: [[0, 0], [1, 1]],
+      lineStyle: { width: 2, color: '#999', type: 'dashed' },
+      symbol: 'none'
+    }
+  ]
+});
+
+// ========== 特征重要性 ==========
+var featChart = echarts.init(document.getElementById('featChart'));
+var featColors = data.feat_coefs.map(function(c) { return c >= 0 ? '#c62828' : '#2e7d32'; });
+featChart.setOption({
+  title: { text: '逻辑回归系数（按绝对值排序）', left: 'center', textStyle: { fontSize: 14 } },
+  tooltip: { trigger: 'axis' },
+  grid: { left: '25%', right: '8%', top: '12%', bottom: '8%' },
+  xAxis: { type: 'value', name: '系数值' },
+  yAxis: { type: 'category', data: data.feat_names.slice().reverse(), axisLabel: { fontSize: 11 } },
+  series: [{
+    type: 'bar',
+    data: data.feat_coefs.slice().reverse().map(function(c, i) {
+      return { value: c, itemStyle: { color: c >= 0 ? '#c62828' : '#2e7d32' } };
+    }),
+    barWidth: '60%',
+    label: { show: true, position: 'right', formatter: function(p) { return p.value.toFixed(3); }, fontSize: 10 }
+  }]
+});
+
+// ========== 预测概率分布 ==========
+var probaChart = echarts.init(document.getElementById('probaChart'));
+var probaData = data.test_proba.map(function(p, i) {
+  var actual = data.test_labels[i];
+  var date = data.test_dates[i];
+  var dateStr = date.substring(0,4) + '-' + date.substring(4,6) + '-' + date.substring(6,8);
+  return {
+    value: [i, p],
+    itemStyle: { color: actual === 1 ? '#e53935' : '#43a047' },
+    actual: actual,
+    date: dateStr
+  };
+});
+probaChart.setOption({
+  title: { text: '测试集预测上涨概率', left: 'center', textStyle: { fontSize: 16 } },
+  tooltip: {
+    trigger: 'item',
+    formatter: function(p) {
+      var label = p.data.actual === 1 ? '实际上涨' : '实际下跌';
+      return p.data.date + '<br/>预测概率: ' + p.value[1].toFixed(4) + '<br/>' + label;
+    }
+  },
+  legend: { data: ['实际上涨', '实际下跌'], bottom: 5 },
+  grid: { left: '8%', right: '5%', top: '12%', bottom: '18%' },
+  xAxis: { name: '测试样本序号', type: 'category', data: data.test_dates.map(function(d, i) { return i + 1; }) },
+  yAxis: { name: '上涨概率', min: 0, max: 1, splitNumber: 5 },
+  series: [
+    {
+      name: '实际上涨',
+      type: 'scatter',
+      symbolSize: 10,
+      data: probaData.filter(function(d) { return d.actual === 1; }),
+      itemStyle: { color: '#e53935' }
+    },
+    {
+      name: '实际下跌',
+      type: 'scatter',
+      symbolSize: 10,
+      data: probaData.filter(function(d) { return d.actual === 0; }),
+      itemStyle: { color: '#43a047' }
+    },
+    {
+      name: '分类阈值0.5',
+      type: 'line',
+      data: data.test_proba.map(function(p, i) { return [i, 0.5]; }),
+      lineStyle: { width: 1.5, color: '#999', type: 'dashed' },
+      symbol: 'none'
+    }
+  ]
+});
+
+// 响应式
+window.addEventListener('resize', function() {
+  rocChart.resize();
+  featChart.resize();
+  probaChart.resize();
+});
+</script>
+
+</body>
+</html>
