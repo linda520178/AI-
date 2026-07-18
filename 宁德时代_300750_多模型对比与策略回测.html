@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宁德时代（300750）多模型对比与策略回测</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #333; line-height: 1.6; }
+.header { background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%); color: white; padding: 40px 20px 30px; text-align: center; }
+.header h1 { font-size: 28px; margin-bottom: 8px; }
+.header .subtitle { font-size: 14px; opacity: 0.85; }
+.header .meta-info { display: flex; justify-content: center; gap: 30px; margin-top: 16px; font-size: 13px; opacity: 0.9; flex-wrap: wrap; }
+.container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 30px; }
+.metric-card { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-top: 3px solid #3949ab; transition: transform 0.2s; }
+.metric-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+.metric-card .label { font-size: 13px; color: #888; margin-bottom: 6px; }
+.metric-card .value { font-size: 24px; font-weight: 700; color: #1a237e; }
+.metric-card .value.green { color: #2e7d32; }
+.metric-card .value.red { color: #c62828; }
+.metric-card .desc { font-size: 11px; color: #aaa; margin-top: 4px; }
+.section { background: white; border-radius: 10px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.section h2 { font-size: 18px; color: #1a237e; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #e8eaf6; display: flex; align-items: center; gap: 8px; }
+.section h2 .icon { font-size: 22px; }
+.chart-box { width: 100%; height: 420px; }
+.chart-box.tall { height: 480px; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { background: #e8eaf6; color: #1a237e; padding: 10px 12px; text-align: center; font-weight: 600; white-space: nowrap; }
+.data-table td { padding: 8px 12px; border-bottom: 1px solid #eee; text-align: center; }
+.data-table tr:hover td { background: #f5f5fa; }
+.data-table .best { background: #e8f5e9; font-weight: 700; color: #2e7d32; }
+.data-table .worst { color: #c62828; }
+.feat-desc { font-size: 13px; color: #666; margin-bottom: 12px; }
+.feat-desc code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; color: #c62828; font-family: "SF Mono", "Fira Code", monospace; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+.footer { text-align: center; padding: 30px 20px; color: #999; font-size: 12px; }
+.footer a { color: #3949ab; text-decoration: none; }
+.color-tag { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>宁德时代（300750.SZ）多模型对比与交易策略回测</h1>
+  <div class="subtitle">逻辑回归 vs 决策树 vs 随机森林 vs GBDT · 模型评估 + 季度收益 + 策略回测</div>
+  <div class="meta-info">
+    <span>📅 2025-07-07 ~ 2026-07-06</span>
+    <span>📊 样本：216 条</span>
+    <span>🔧 特征：26 维</span>
+    <span>🏷️ 标签：次日涨跌</span>
+    <span>⚙️ 4种模型对比</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 数据划分概览 -->
+  <div class="section">
+    <h2><span class="icon">📋</span> 数据划分与标签分布</h2>
+    <table class="data-table">
+      <thead>
+        <tr><th>数据集</th><th>样本数</th><th>上涨(1)</th><th>下跌(0)</th><th>上涨占比</th><th>用途</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>训练集</strong></td><td>172</td><td style="color:#c62828">87</td><td style="color:#2e7d32">85</td><td>50.6%</td><td>模型训练</td></tr>
+        <tr><td><strong>测试集</strong></td><td>44</td><td style="color:#c62828">17</td><td style="color:#2e7d32">27</td><td>38.6%</td><td>模型评估 + 策略回测</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 模型评估对比表 -->
+  <div class="section">
+    <h2><span class="icon">🔬</span> 模型评估指标对比</h2>
+    <table class="data-table" id="modelTable">
+      <thead>
+        <tr><th>模型</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>AUC</th></tr>
+      </thead>
+      <tbody id="modelTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ROC曲线对比 -->
+  <div class="section">
+    <h2><span class="icon">📈</span> ROC 曲线对比</h2>
+    <div class="feat-desc">四条ROC曲线叠加对比，曲线越靠近左上角，模型判别能力越强。AUC值越大越好。</div>
+    <div id="rocChart" class="chart-box tall"></div>
+  </div>
+
+  <!-- 净值曲线 -->
+  <div class="section">
+    <h2><span class="icon">💰</span> 策略净值曲线</h2>
+    <div class="feat-desc">初始资金 ¥100,000。模型预测上涨概率 &gt; 0.5 时持仓，否则空仓。含手续费0.1%。</div>
+    <div id="navChart" class="chart-box tall"></div>
+  </div>
+
+  <!-- 季度收益率 -->
+  <div class="section">
+    <h2><span class="icon">📅</span> 测试集各季度收益率对比</h2>
+    <div class="feat-desc">按季度统计各策略的区间收益率，红色为正收益，绿色为负收益。</div>
+    <div id="quarterChart" class="chart-box tall"></div>
+  </div>
+
+  <!-- 回测指标 -->
+  <div class="section">
+    <h2><span class="icon">📊</span> 策略回测核心指标</h2>
+    <table class="data-table" id="backtestTable">
+      <thead>
+        <tr><th>策略</th><th>总收益率</th><th>最终资金</th><th>最大回撤</th><th>夏普比率</th><th>超额收益(vs基准)</th></tr>
+      </thead>
+      <tbody id="backtestTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- 特征重要性 -->
+  <div class="section">
+    <h2><span class="icon">🌳</span> 随机森林特征重要性 Top15</h2>
+    <div class="feat-desc">随机森林模型的特征重要性排序，反映各技术指标对预测涨跌的贡献度。</div>
+    <div id="featChart" class="chart-box tall"></div>
+  </div>
+
+  <!-- 模型说明 -->
+  <div class="section">
+    <h2><span class="icon">📝</span> 模型说明与结论</h2>
+    <div style="font-size:14px; line-height:1.8; color:#555;">
+      <p style="margin-bottom:10px;"><strong>1. 任务定义：</strong>以宁德时代242个交易日数据为基准，构建26维技术指标特征，预测次日股价涨跌方向（上涨=1，下跌=0），训练4种分类模型并对比效果。</p>
+      <p style="margin-bottom:10px;"><strong>2. 特征工程：</strong>从OHLCV数据衍生了均线距离比、动量、波动率、RSI、MACD(DIF/HIST)、ATR、布林带位置、K线形态（上影线/下影线/振幅）、量价关系等26个特征。</p>
+      <p style="margin-bottom:10px;"><strong>3. 模型对比：</strong>逻辑回归为线性模型，决策树为单棵树，随机森林和GBDT为集成模型。集成模型通常能捕捉非线性特征交互，在金融预测中表现更稳健。</p>
+      <p style="margin-bottom:10px;"><strong>4. 交易策略：</strong>模型预测次日上涨概率 &gt; 0.5 时全仓持有，否则空仓。每笔交易扣除0.1%手续费。回测在测试集（后20%数据）上进行。</p>
+      <p style="margin-bottom:10px;"><strong>5. 局限性：</strong>样本量较小（241天），模型可能过拟合；仅使用技术指标特征，未包含宏观/基本面/情绪因子；A股T+1限制，实际操作中次日开盘价可能与收盘价有偏差。本模型仅供学习，不构成投资建议。</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>宁德时代多模型对比与策略回测 · 数据来源 <a href="https://tushare.pro" target="_blank">Tushare</a> · 可视化 <a href="https://echarts.apache.org" target="_blank">Apache ECharts</a></p>
+  <p style="margin-top:6px">本页面仅供学习交流，不构成投资建议</p>
+</div>
+
+<script>
+var D = {"models": {"买入持有": [100000.0, 97977.53, 103370.79, 101492.13, 98202.25, 100249.44, 96910.11, 97539.33, 95955.06, 95191.01, 93759.55, 93914.61, 93202.25, 92501.12, 92395.51, 90534.83, 90449.44, 93213.48, 93411.24, 95280.9, 94404.49, 97503.37, 95824.72, 91730.34, 90561.8, 88319.1, 89775.28, 87303.37, 85887.64, 88730.34, 89460.67, 90680.9, 89662.92, 87988.76, 91905.62, 88204.49, 88844.94, 90314.61, 85617.98, 88170.79, 88316.85, 86256.18, 85921.35, 85393.26, 84159.55], "逻辑回归": [100000.0, 97877.53, 103167.4, 103167.4, 103167.4, 105214.94, 105214.94, 105214.94, 105214.94, 105214.94, 103527.52, 103595.2, 102705.82, 101830.5, 101612.4, 99464.5, 99271.22, 102205.58, 102320.2, 104265.86, 103202.55, 106487.02, 104547.22, 99975.6, 99975.6, 97399.8, 98908.3, 96086.01, 94431.77, 97462.83, 98167.58, 99408.39, 98193.03, 96261.41, 100450.27, 100450.27, 101079.18, 102650.14, 97209.38, 100010.59, 100076.26, 97641.13, 97164.46, 96470.11, 94979.9], "决策树": [100000.0, 97877.53, 97877.53, 97877.53, 94606.93, 94606.93, 91360.95, 91360.95, 91360.95, 90542.13, 90542.13, 90542.13, 90542.13, 89770.47, 89578.2, 89578.2, 89404.13, 92046.83, 92150.06, 92150.06, 91210.3, 94113.12, 92398.72, 92398.72, 92398.72, 90018.14, 91412.31, 91412.31, 89838.54, 92722.16, 92722.16, 93894.15, 92746.21, 90921.73, 94878.23, 90962.52, 91532.03, 92954.61, 92954.61, 92954.61, 93015.65, 90752.32, 90309.28, 90309.28, 90309.28], "随机森林": [100000.0, 100000.0, 105404.59, 105404.59, 105404.59, 107496.52, 103808.29, 103808.29, 102018.39, 101104.05, 99482.57, 99547.61, 98692.97, 97851.85, 97642.27, 95578.29, 95392.57, 98212.27, 98322.42, 98322.42, 97319.72, 100416.97, 98587.74, 94276.71, 94276.71, 91847.74, 93270.25, 90608.84, 89048.9, 91907.18, 91907.18, 93068.86, 91931.01, 90122.57, 94044.29, 94044.29, 94633.1, 96103.88, 91010.08, 91010.08, 91069.84, 88853.87, 88853.87, 88853.87, 87481.31], "GBDT": [100000.0, 100000.0, 105404.59, 105404.59, 105404.59, 105404.59, 105404.59, 105404.59, 103587.16, 102658.76, 101012.34, 101078.38, 100210.6, 99356.55, 99143.75, 97048.03, 96859.45, 99722.52, 99834.35, 101732.74, 100695.26, 103899.94, 102007.26, 97546.71, 97546.71, 95033.49, 96505.34, 96505.34, 94843.88, 97888.17, 97888.17, 99125.45, 97913.55, 95987.43, 100164.36, 96030.48, 96631.73, 98133.57, 92932.19, 95610.15, 95672.94, 93344.95, 93344.95, 92677.89, 91246.26], "逻辑回归_metrics": {"acc": 0.5227, "prec": 0.4444, "rec": 0.9412, "f1": 0.6038, "auc": 0.6122, "fpr": [0.0, 0.037037037037037035, 0.07407407407407407, 0.07407407407407407, 0.1111111111111111, 0.1111111111111111, 0.18518518518518517, 0.18518518518518517, 0.3333333333333333, 0.3333333333333333, 0.37037037037037035, 0.37037037037037035, 0.5555555555555556, 0.5555555555555556, 0.5925925925925926, 0.5925925925925926, 0.7037037037037037, 0.7037037037037037, 0.7407407407407407, 0.7407407407407407, 0.8888888888888888, 0.8888888888888888, 1.0], "tpr": [0.0, 0.0, 0.0, 0.058823529411764705, 0.058823529411764705, 0.29411764705882354, 0.29411764705882354, 0.4117647058823529, 0.4117647058823529, 0.47058823529411764, 0.47058823529411764, 0.5882352941176471, 0.5882352941176471, 0.7058823529411765, 0.7058823529411765, 0.8235294117647058, 0.8235294117647058, 0.8823529411764706, 0.8823529411764706, 0.9411764705882353, 0.9411764705882353, 1.0, 1.0]}, "决策树_metrics": {"acc": 0.4773, "prec": 0.3846, "rec": 0.5882, "f1": 0.4651, "auc": 0.5261, "fpr": [0.0, 0.25925925925925924, 0.37037037037037035, 0.4074074074074074, 0.5925925925925926, 0.5925925925925926, 0.7407407407407407, 0.8518518518518519, 0.8888888888888888, 1.0], "tpr": [0.0, 0.35294117647058826, 0.35294117647058826, 0.35294117647058826, 0.5882352941176471, 0.7058823529411765, 0.8235294117647058, 0.8235294117647058, 0.8823529411764706, 1.0]}, "随机森林_metrics": {"acc": 0.4545, "prec": 0.3939, "rec": 0.7647, "f1": 0.52, "auc": 0.4967, "fpr": [0.0, 0.037037037037037035, 0.07407407407407407, 0.07407407407407407, 0.14814814814814814, 0.14814814814814814, 0.2222222222222222, 0.2222222222222222, 0.25925925925925924, 0.25925925925925924, 0.3333333333333333, 0.3333333333333333, 0.4074074074074074, 0.4074074074074074, 0.48148148148148145, 0.48148148148148145, 0.5185185185185185, 0.5185185185185185, 0.5925925925925926, 0.5925925925925926, 0.7037037037037037, 0.7037037037037037, 0.7407407407407407, 0.7407407407407407, 0.8518518518518519, 0.8518518518518519, 1.0], "tpr": [0.0, 0.0, 0.0, 0.058823529411764705, 0.058823529411764705, 0.11764705882352941, 0.11764705882352941, 0.17647058823529413, 0.17647058823529413, 0.23529411764705882, 0.23529411764705882, 0.35294117647058826, 0.35294117647058826, 0.4117647058823529, 0.4117647058823529, 0.47058823529411764, 0.47058823529411764, 0.5294117647058824, 0.5294117647058824, 0.6470588235294118, 0.6470588235294118, 0.7647058823529411, 0.7647058823529411, 0.8823529411764706, 0.8823529411764706, 1.0, 1.0]}, "GBDT_metrics": {"acc": 0.4773, "prec": 0.4118, "rec": 0.8235, "f1": 0.549, "auc": 0.5839, "fpr": [0.0, 0.0, 0.037037037037037035, 0.037037037037037035, 0.07407407407407407, 0.07407407407407407, 0.1111111111111111, 0.1111111111111111, 0.25925925925925924, 0.25925925925925924, 0.3333333333333333, 0.3333333333333333, 0.37037037037037035, 0.37037037037037035, 0.5925925925925926, 0.5925925925925926, 0.6296296296296297, 0.6296296296296297, 0.7037037037037037, 0.7037037037037037, 0.7407407407407407, 0.7407407407407407, 0.7777777777777778, 0.7777777777777778, 0.8148148148148148, 0.8148148148148148, 1.0], "tpr": [0.0, 0.058823529411764705, 0.058823529411764705, 0.11764705882352941, 0.11764705882352941, 0.17647058823529413, 0.17647058823529413, 0.29411764705882354, 0.29411764705882354, 0.35294117647058826, 0.35294117647058826, 0.47058823529411764, 0.47058823529411764, 0.5294117647058824, 0.5294117647058824, 0.7058823529411765, 0.7058823529411765, 0.7647058823529411, 0.7647058823529411, 0.8235294117647058, 0.8235294117647058, 0.8823529411764706, 0.8823529411764706, 0.9411764705882353, 0.9411764705882353, 1.0, 1.0]}}, "strategy_names": ["买入持有", "逻辑回归", "决策树", "随机森林", "GBDT"], "strategy_metrics": {"买入持有": {"total_ret": -0.158404, "final_value": 84159.55, "max_dd": 0.185848, "sharpe": -2.4604}, "逻辑回归": {"total_ret": -0.050201, "final_value": 94979.9, "max_dd": 0.113209, "sharpe": -0.702}, "决策树": {"total_ret": -0.096907, "final_value": 90309.28, "max_dd": 0.105959, "sharpe": -2.0275}, "随机森林": {"total_ret": -0.125187, "final_value": 87481.31, "max_dd": 0.186194, "sharpe": -2.1182}, "GBDT": {"total_ret": -0.087537, "final_value": 91246.26, "max_dd": 0.134324, "sharpe": -1.3667}}, "quarterly_returns": {"买入持有": [{"quarter": "2026Q2", "ret": -0.137438}, {"quarter": "2026Q3", "ret": -0.024307}], "逻辑回归": [{"quarter": "2026Q2", "ret": -0.023589}, {"quarter": "2026Q3", "ret": -0.027255}], "决策树": [{"quarter": "2026Q2", "ret": -0.092477}, {"quarter": "2026Q3", "ret": -0.004882}], "随机森林": [{"quarter": "2026Q2", "ret": -0.111461}, {"quarter": "2026Q3", "ret": -0.015447}], "GBDT": [{"quarter": "2026Q2", "ret": -0.06655}, {"quarter": "2026Q3", "ret": -0.022483}]}, "unique_quarters": ["2026Q2", "2026Q3"], "test_dates": ["20260429", "20260430", "20260506", "20260507", "20260508", "20260511", "20260512", "20260513", "20260514", "20260515", "20260518", "20260519", "20260520", "20260521", "20260522", "20260525", "20260526", "20260527", "20260528", "20260529", "20260601", "20260602", "20260603", "20260604", "20260605", "20260608", "20260609", "20260610", "20260611", "20260612", "20260615", "20260616", "20260617", "20260618", "20260622", "20260623", "20260624", "20260625", "20260626", "20260629", "20260630", "20260701", "20260702", "20260703"], "test_closes": [445.0, 436.0, 460.0, 451.64, 437.0, 446.11, 431.25, 434.05, 427.0, 423.6, 417.23, 417.92, 414.75, 411.63, 411.16, 402.88, 402.5, 414.8, 415.68, 424.0, 420.1, 433.89, 426.42, 408.2, 403.0, 393.02, 399.5, 388.5, 382.2, 394.85, 398.1, 403.53, 399.0, 391.55, 408.98, 392.51, 395.36, 401.9, 381.0, 392.36, 393.01, 383.84, 382.35, 380.0], "test_returns": [-0.020225, 0.055046, -0.018174, -0.032415, 0.020847, -0.03331, 0.006493, -0.016242, -0.007963, -0.015038, 0.001654, -0.007585, -0.007523, -0.001142, -0.020138, -0.000943, 0.030559, 0.002122, 0.020015, -0.009198, 0.032826, -0.017216, -0.042728, -0.012739, -0.024764, 0.016488, -0.027534, -0.016216, 0.033098, 0.008231, 0.01364, -0.011226, -0.018672, 0.044515, -0.040271, 0.007261, 0.016542, -0.052003, 0.029816, 0.001657, -0.023333, -0.003882, -0.006146, -0.014447], "feat_importance_names": ["量比10", "换手加速", "上影线", "ATR_14比", "量比5", "成交额变化", "20日波动率", "MACD_HIST", "下影线", "RSI_14", "20日动量", "日内振幅", "5日波动率", "MA10_MA20差", "MACD_DIF"], "feat_importance_values": [0.0625, 0.061, 0.0544, 0.0518, 0.0512, 0.0485, 0.0471, 0.0464, 0.0455, 0.0404, 0.0403, 0.0394, 0.037, 0.0356, 0.0339], "train_size": 172, "test_size": 44, "total": 216, "up_count": 104, "down_count": 112, "feature_count": 26, "up_train": 87, "down_train": 85, "up_test": 17, "down_test": 27};
+
+var colors = {
+  "买入持有": "#1565c0",
+  "逻辑回归": "#7b1fa2",
+  "决策树": "#e65100",
+  "随机森林": "#2e7d32",
+  "GBDT": "#c62828"
+};
+
+// 模型评估表
+var mt = document.getElementById("modelTableBody");
+var bestAUC = 0, bestF1 = 0;
+for (var m in D.models) {
+  if (m.endsWith("_metrics")) {
+    var name = m.replace("_metrics", "");
+    var v = D.models[m];
+    if (v.auc > bestAUC) bestAUC = v.auc;
+    if (v.f1 > bestF1) bestF1 = v.f1;
+  }
+}
+for (var m in D.models) {
+  if (m.endsWith("_metrics")) {
+    var name = m.replace("_metrics", "");
+    var v = D.models[m];
+    var tr = document.createElement("tr");
+    var aucCls = v.auc === bestAUC ? "best" : "";
+    var f1Cls = v.f1 === bestF1 ? "best" : "";
+    tr.innerHTML = '<td><strong>' + name + '</strong></td><td>' + (v.acc*100).toFixed(2) + '%</td><td>' + (v.prec*100).toFixed(2) + '%</td><td>' + (v.rec*100).toFixed(2) + '%</td><td class="' + f1Cls + '">' + v.f1.toFixed(4) + '</td><td class="' + aucCls + '">' + v.auc.toFixed(4) + '</td>';
+    mt.appendChild(tr);
+  }
+}
+
+// 回测指标表
+var bt = document.getElementById("backtestTableBody");
+var bhRet = D.strategy_metrics["买入持有"].total_ret;
+var bestRet = -999;
+for (var s in D.strategy_metrics) {
+  if (D.strategy_metrics[s].total_ret > bestRet) bestRet = D.strategy_metrics[s].total_ret;
+}
+for (var s in D.strategy_metrics) {
+  var v = D.strategy_metrics[s];
+  var excess = v.total_ret - bhRet;
+  var retCls = v.total_ret === bestRet ? "best" : (v.total_ret < 0 ? "worst" : "");
+  var tr = document.createElement("tr");
+  tr.innerHTML = '<td><strong>' + s + '</strong></td><td class="' + retCls + '">' + (v.total_ret*100).toFixed(2) + '%</td><td>¥' + v.final_value.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) + '</td><td>' + (v.max_dd*100).toFixed(2) + '%</td><td>' + v.sharpe.toFixed(4) + '</td><td style="color:' + (excess>=0?'#2e7d32':'#c62828') + '">' + (excess*100).toFixed(2) + '%</td>';
+  bt.appendChild(tr);
+}
+
+// ROC曲线
+var rocChart = echarts.init(document.getElementById("rocChart"));
+var rocSeries = [];
+for (var m in D.models) {
+  if (m.endsWith("_metrics")) {
+    var name = m.replace("_metrics", "");
+    var v = D.models[m];
+    var data = v.fpr.map(function(f, i) { return [f, v.tpr[i]]; });
+    rocSeries.push({
+      name: name + ' (AUC=' + v.auc.toFixed(3) + ')',
+      type: "line",
+      smooth: true,
+      symbol: "none",
+      data: data,
+      lineStyle: { width: 2.5, color: colors[name] || "#999" }
+    });
+  }
+}
+rocSeries.push({
+  name: "随机分类器 (AUC=0.5)",
+  type: "line",
+  data: [[0,0],[1,1]],
+  lineStyle: { width: 1.5, color: "#bbb", type: "dashed" },
+  symbol: "none"
+});
+rocChart.setOption({
+  title: { text: "ROC 曲线对比", left: "center", textStyle: { fontSize: 16 } },
+  tooltip: { trigger: "axis", formatter: function(p) { return p[0].data[0].toFixed(3) + ", " + p[0].data[1].toFixed(3); } },
+  legend: { bottom: 5, textStyle: { fontSize: 11 } },
+  grid: { left: "8%", right: "5%", top: "12%", bottom: "18%" },
+  xAxis: { name: "FPR", min: 0, max: 1 },
+  yAxis: { name: "TPR", min: 0, max: 1 },
+  series: rocSeries
+});
+
+// 净值曲线
+var navChart = echarts.init(document.getElementById("navChart"));
+var navSeries = [];
+var testDatesFmt = D.test_dates.map(function(d) {
+  return d.substring(0,4) + "-" + d.substring(4,6) + "-" + d.substring(6,8);
+});
+var xAxisData = ["初始"].concat(testDatesFmt);
+for (var s in D.models) {
+  if (!s.endsWith("_metrics") && D.models[s]) {
+    navSeries.push({
+      name: s,
+      type: "line",
+      smooth: true,
+      symbol: "none",
+      data: D.models[s],
+      lineStyle: { width: 2, color: colors[s] || "#999" }
+    });
+  }
+}
+navChart.setOption({
+  title: { text: "策略净值曲线（¥100,000起）", left: "center", textStyle: { fontSize: 16 } },
+  tooltip: { trigger: "axis", formatter: function(p) {
+    var s = p[0].axisValue + "<br/>";
+    p.forEach(function(item) { s += item.marker + item.seriesName + ": ¥" + item.value.toLocaleString(undefined,{minimumFractionDigits:2}) + "<br/>"; });
+    return s;
+  }},
+  legend: { bottom: 5 },
+  grid: { left: "10%", right: "5%", top: "12%", bottom: "18%" },
+  xAxis: { type: "category", data: xAxisData, axisLabel: { fontSize: 10, rotate: 30 } },
+  yAxis: { type: "value", name: "净值(¥)", scale: true },
+  series: navSeries
+});
+
+// 季度收益率
+var qChart = echarts.init(document.getElementById("quarterChart"));
+var qSeries = [];
+for (var s in D.quarterly_returns) {
+  var qr = D.quarterly_returns[s];
+  qSeries.push({
+    name: s,
+    type: "bar",
+    data: qr.map(function(q) { return q.ret; }),
+    itemStyle: { color: colors[s] || "#999" }
+  });
+}
+qChart.setOption({
+  title: { text: "各季度收益率对比", left: "center", textStyle: { fontSize: 16 } },
+  tooltip: { trigger: "axis", formatter: function(p) {
+    var s = p[0].axisValue + "<br/>";
+    p.forEach(function(item) { s += item.marker + item.seriesName + ": " + (item.value*100).toFixed(2) + "%<br/>"; });
+    return s;
+  }},
+  legend: { bottom: 5 },
+  grid: { left: "10%", right: "5%", top: "12%", bottom: "18%" },
+  xAxis: { type: "category", data: D.unique_quarters },
+  yAxis: { type: "value", name: "收益率", axisLabel: { formatter: function(v) { return (v*100).toFixed(1) + "%"; } } },
+  series: qSeries
+});
+
+// 特征重要性
+var featChart = echarts.init(document.getElementById("featChart"));
+featChart.setOption({
+  title: { text: "随机森林特征重要性", left: "center", textStyle: { fontSize: 16 } },
+  tooltip: { trigger: "axis" },
+  grid: { left: "25%", right: "8%", top: "12%", bottom: "8%" },
+  xAxis: { type: "value", name: "重要性" },
+  yAxis: { type: "category", data: D.feat_importance_names.slice().reverse(), axisLabel: { fontSize: 11 } },
+  series: [{
+    type: "bar",
+    data: D.feat_importance_values.slice().reverse(),
+    barWidth: "60%",
+    itemStyle: { color: "#3949ab" },
+    label: { show: true, position: "right", formatter: function(p) { return p.value.toFixed(4); }, fontSize: 10 }
+  }]
+});
+
+window.addEventListener("resize", function() {
+  rocChart.resize(); navChart.resize(); qChart.resize(); featChart.resize();
+});
+</script>
+</body>
+</html>
